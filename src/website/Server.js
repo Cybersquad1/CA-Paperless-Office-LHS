@@ -25,9 +25,9 @@ function PublishDir(dir) {
 PublishDir("/js");
 PublishDir("/css");
 PublishDir("/fonts");
-
+PublishDir("/images");
 
 
 app.listen(80, function () {
-    console.log('Example app listening on port 3000!');
+    console.log('Example app listening on port 80!');
 });
