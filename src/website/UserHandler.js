@@ -5,11 +5,11 @@ var EE = require('./ErrorEvent');
 var DB = require('./DBTools');
 var Eh = require("./ErrorHandler");
 var sql = require('mssql');
-var fs = require('fs');
-var debug = false;
+// var fs = require('fs');
+var dbconfig = require('./DBCredentials.json');
 
-module.exports = function () {
-    var ErrorEvent = new EE('UserDB');
+module.exports = function (debug) {
+    var ErrorEvent = new EE('UserHandler');
     var db = new DB();
     db.ErrorEvent.SetOnError(ErrorEvent.HError);
     var UserHandler = this;
@@ -17,11 +17,11 @@ module.exports = function () {
         ConnectDataBase();
         function ConnectDataBase() {
 
-            var config = JSON.parse(fs.readFileSync('DBCredentials.json', 'utf8'));
+            // var config = JSON.parse(fs.readFileSync('DBCredentials.json', 'utf8'));
 
-            sql.connect(config, function (err) {
+            sql.connect(dbconfig, function (err) {
                 // ... error checks
-                if (err !== undefined) {
+                if (err !== undefined && err !== null) {
                     console.error(err); // can't log to errorhandling because database isn't connected :p
                     throw err;
                 }
@@ -66,12 +66,12 @@ module.exports = function () {
             callback();
         }
 
-        this.Login = function(username, password) {
-            
+        this.Login = function (username, password) {
+
         }
 
-        this.Register = function(username, password, email) {
-            
+        this.Register = function (username, password, email) {
+
         }
     };
     return this;

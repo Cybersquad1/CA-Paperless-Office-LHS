@@ -1,46 +1,53 @@
+var debug = process.env.NODE_ENV === "development";
+
 var fs = require("fs");
 var express = require('express');
 var app = express();
 
-var UH = require('./UserHandler');
-var UserHandler = new UH();
-UserHandler.Init(function() {
-    
-});
-var EE = require('./ErrorEvent');
-var Error = new EE('Server');
-
-app.get('/', function (req, res) {
-    res.sendFile(__dirname + "/" + "index.html");
-});
-
-function Log(err) {
-    if (Error !== undefined) {
-        Error.HError(err);
+var UH = require('./UserHandler.js');
+var EE = require('./ErrorEvent.js');
+var UserHandler = new UH(debug);
+console.log('preinit');
+UserHandler.Init(function (err) {
+    if (err !== undefined) {
+        console.error(err);
+        throw err;
     }
-    else {
-        console.log(err);
+    console.log(debug);
+    var Error = new EE('Server');
+
+    app.get('/', function (req, res) {
+        res.sendFile(__dirname + "/" + "index.html");
+    });
+
+    function Log(log) {
+        if (Error !== undefined) {
+            Error.HError(log);
+        }
+        else {
+            console.log(log);
+        }
     }
-}
 
-function PublishDir(dir) {
-    if (fs.statSync(__dirname + dir).isDirectory()) {
-        app.get(dir + "/*", function (req, res) {
-            if (fs.existsSync(__dirname + req.path)) {
-                res.sendFile(__dirname + req.path);
-            }
-        });
-        return;
+    function PublishDir(dir) {
+        if (fs.statSync(__dirname + dir).isDirectory()) {
+            app.get(dir + "/*", function (req, res) {
+                if (fs.existsSync(__dirname + req.path)) {
+                    res.sendFile(__dirname + req.path);
+                }
+            });
+            return;
+        }
+        Log("ERROR: FAILED!");
     }
-    Log("ERROR: FAILED!");
-}
 
-PublishDir("/js");
-PublishDir("/css");
-PublishDir("/fonts");
+    PublishDir("/js");
+    PublishDir("/css");
+    PublishDir("/fonts");
 
 
-
-app.listen(80, function () {
-    Log('Server running on port 80');
+    var port = process.env.port || 80;
+    app.listen(port, function () {
+        Log('Server running on port ' + port);
+    });
 });

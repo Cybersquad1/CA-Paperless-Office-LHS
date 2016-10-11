@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/Levi--G/CA-Paperless-Office-LHS#readme",
   "dependencies": {
-    "express": "^4.14.0"
+    "express": "^4.14.0",
+    "mssql": "^3.3.0"
   }
 }
