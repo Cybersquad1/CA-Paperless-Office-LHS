@@ -2,12 +2,25 @@ var fs = require("fs");
 var express = require('express');
 var app = express();
 
+var UH = require('./UserHandler');
+var UserHandler = new UH();
+UserHandler.Init(function() {
+    
+});
+var EE = require('./ErrorEvent');
+var Error = new EE('Server');
+
 app.get('/', function (req, res) {
     res.sendFile(__dirname + "/" + "index.html");
 });
 
 function Log(err) {
-    console.log(err);
+    if (Error !== undefined) {
+        Error.HError(err);
+    }
+    else {
+        console.log(err);
+    }
 }
 
 function PublishDir(dir) {
@@ -29,5 +42,5 @@ PublishDir("/fonts");
 
 
 app.listen(80, function () {
-    console.log('Example app listening on port 3000!');
+    Log('Server running on port 80');
 });

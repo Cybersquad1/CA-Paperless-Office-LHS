@@ -1,41 +1,40 @@
 /**
  * Created by levi_ on 7/10/2016.
  */
+var EE = require('./ErrorEvent');
+var DB = require('./DBTools');
+var Eh = require("./ErrorHandler");
+var sql = require('mssql');
+var fs = require('fs');
+var debug = false;
 
 module.exports = function () {
-    var EE = require('./ErrorEvent');
     var ErrorEvent = new EE('UserDB');
-    var DB = require('./DBTools');
-    var Eh = require("./ErrorHandler");
     var db = new DB();
     db.ErrorEvent.SetOnError(ErrorEvent.HError);
-    var sql;
     var UserHandler = this;
     this.Init = function (callback) {
         ConnectDataBase();
         function ConnectDataBase() {
-            sql = require('mssql');
 
-            var fs = require('fs');
             var config = JSON.parse(fs.readFileSync('DBCredentials.json', 'utf8'));
 
             sql.connect(config, function (err) {
                 // ... error checks
-                if (err != undefined) {
+                if (err !== undefined) {
                     console.error(err); // can't log to errorhandling because database isn't connected :p
-                    throw (err);
+                    throw err;
                 }
                 db.Exists(sql, 'sessions',
                     'CREATE TABLE [dbo].[sessions]([sid] [varchar](255) NOT NULL PRIMARY KEY,[session] [varchar](max) NOT NULL,[expires] [datetime] NOT NULL)',
                     'DELETE FROM sessions WHERE expires < getdate();',
-                    function (err) {
-                        if (err !== undefined) {
-                            callback(err);
+                    function (error) {
+                        if (error !== undefined) {
+                            callback(error);
+                            return;
                         }
-                        else {
-                            SetupErrorHandler();
-                        }
-                    })
+                        SetupErrorHandler();
+                    });
             });
 
             sql.on('error', function (err) {
@@ -56,16 +55,24 @@ module.exports = function () {
                 function (err) {
                     if (err !== undefined) {
                         callback(err);
+                        return;
                     }
-                    else {
-                        CheckDocumentTable();
-                    }
+                    CheckDocumentTable();
                 });
         }
 
         function CheckDocumentTable() {
-            //todo: check the table
+            // TODO: check the table
             callback();
         }
+
+        this.Login = function(username, password) {
+            
+        }
+
+        this.Register = function(username, password, email) {
+            
+        }
     };
+    return this;
 };

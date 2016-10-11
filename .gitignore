@@ -4,3 +4,6 @@ src/website/.idea/
 src/website/node_modules/
 src/website/DBCredentials.json
 .idea/
+src/website/jsconfig.json
+src/website/.vscode/
+src/website/.eslintrc.json
