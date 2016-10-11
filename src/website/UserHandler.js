@@ -13,7 +13,7 @@ module.exports = function (debug) {
     var db = new DB();
     db.ErrorEvent.SetOnError(ErrorEvent.HError);
     var UserHandler = this;
-    this.Init = function (callback) {
+    this.Init = function (initCallback) {
         ConnectDataBase();
         function ConnectDataBase() {
 
@@ -30,7 +30,7 @@ module.exports = function (debug) {
                     'DELETE FROM sessions WHERE expires < getdate();',
                     function (error) {
                         if (error !== undefined) {
-                            callback(error);
+                            initCallback(error);
                             return;
                         }
                         SetupErrorHandler();
@@ -54,7 +54,7 @@ module.exports = function (debug) {
                 'CREATE TABLE users([id] int IDENTITY(1,1) PRIMARY KEY, email varchar(255), username varchar(255), password varchar(255), totalebestanden int, groottebestanden int, dataplan tinyint);', undefined,
                 function (err) {
                     if (err !== undefined) {
-                        callback(err);
+                        initCallback(err);
                         return;
                     }
                     CheckDocumentTable();
@@ -63,16 +63,41 @@ module.exports = function (debug) {
 
         function CheckDocumentTable() {
             // TODO: check the table
-            callback();
+            initCallback();
         }
 
         this.Login = function (username, password, callback) {
-            db.Match()
-        }
+            db.Match(sql, 'users', ['username', 'password'], [username, password], function (loggedin, recordset) {
+                var user;
+                if (loggedin) {
+                    user = recordset[0];
+                }
+                callback(loggedin, user);
+            });
+        };
 
-        this.Register = function (username, password, email) {
-
-        }
+        this.Register = function (username, password, email, callback) {
+            db.Match(sql, 'users', 'username', username, function (match) {
+                if (match) {
+                    callback({
+                        "error": "Username is already in use",
+                        "success": false
+                    });
+                    return;
+                }
+                db.Match(sql, 'users', 'email', email, function (match2) {
+                    if (match2) {
+                        callback({
+                            "error": "Email is already in use",
+                            "success": false
+                        });
+                        return;
+                    }
+                    // todo: insert in database and return success
+                    // callback({ "success": true });
+                });
+            });
+        };
     };
     return this;
 };
