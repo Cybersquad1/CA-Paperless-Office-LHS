@@ -1,9 +1,9 @@
 /**
  * Created by levi_ on 7/10/2016.
  */
-var EE = require('./ErrorEvent');
-var DB = require('./DBTools');
-var Eh = require("./ErrorHandler");
+var EE = require('./ErrorEvent.js');
+var DB = require('./DBTools.js');
+var Eh = require("./ErrorHandler.js");
 var sql = require('mssql');
 // var fs = require('fs');
 var dbconfig = require('./DBCredentials.json');
@@ -66,8 +66,8 @@ module.exports = function (debug) {
             callback();
         }
 
-        this.Login = function (username, password) {
-
+        this.Login = function (username, password, callback) {
+            db.Match()
         }
 
         this.Register = function (username, password, email) {

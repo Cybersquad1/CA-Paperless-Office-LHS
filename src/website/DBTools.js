@@ -1,7 +1,7 @@
 /**
  * Created by levi_ on 14/09/2016.
  */
-var EE = require('./ErrorEvent');
+var EE = require('./ErrorEvent.js');
 
 module.exports = function () {
     var ErrorEvent = new EE('DBTools');
@@ -100,7 +100,7 @@ module.exports = function () {
                 }
             }
             else if (callback !== undefined) {
-                callback(recordset.length > 0);
+                callback(recordset.length > 0, recordset);
                 return;
             }
         });

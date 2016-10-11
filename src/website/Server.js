@@ -7,15 +7,15 @@ var app = express();
 var UH = require('./UserHandler.js');
 var EE = require('./ErrorEvent.js');
 var UserHandler = new UH(debug);
-console.log('preinit');
+if (debug) {
+    console.log('Application is running in debug mode!');
+}
 UserHandler.Init(function (err) {
     if (err !== undefined) {
         console.error(err);
         throw err;
     }
-    console.log(debug);
     var Error = new EE('Server');
-
     app.get('/', function (req, res) {
         res.sendFile(__dirname + "/" + "index.html");
     });
