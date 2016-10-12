@@ -106,5 +106,48 @@ module.exports = function () {
         });
     };
 
+    this.Insert = function (sql, table, parameters, valuetypes, callback) {
+        var internalparameters, internalvalues;
+        internalparameters = MakeArray(parameters);
+        internalvalues = MakeArray(valuetypes);
+        if (internalparameters.length !== internalvalues.length || internalparameters.length < 1) {
+            ErrorEvent.HError("amount of parameters and values not equal or smaller than 1", ErrorEvent.DataBaseError);
+            if (callback !== undefined) {
+                callback(false);
+                return;
+            }
+        }
+        var query = "INSERT INTO " + table + " (";
+        for (var index = 0; index < internalparameters.length; index++) {
+            if (index > 0) {
+                query += ",";
+            }
+            query += internalparameters[index];
+        }
+        query += ") VALUES (";
+        var request = new sql.Request();
+        for (var index2 = 0; index2 < internalparameters.length; index2++) {
+            if (index2 > 0) {
+                query += ",";
+            }
+            request.input(internalparameters[index2], internalvalues[index2]);
+            query += "@" + internalparameters[index2];
+        }
+        query += ");";
+        request.query(query, function (err) {
+            if (err !== undefined) {
+                ErrorEvent.HError(err, ErrorEvent.DataBaseError);
+                if (callback !== undefined) {
+                    callback(false);
+                    return;
+                }
+            }
+            else if (callback !== undefined) {
+                callback(true);
+                return;
+            }
+        });
+    };
+
     return this;
 };

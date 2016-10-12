@@ -1,24 +1,27 @@
 /**
  * Created by levi_ on 7/10/2016.
  */
+
 var EE = require('./ErrorEvent.js');
 var DB = require('./DBTools.js');
 var Eh = require("./ErrorHandler.js");
 var sql = require('mssql');
-// var fs = require('fs');
 var dbconfig = require('./DBCredentials.json');
 
+/**
+ * @constructor
+ * @param {bool} debug enable for development mode
+ */
 module.exports = function (debug) {
     var ErrorEvent = new EE('UserHandler');
     var db = new DB();
     db.ErrorEvent.SetOnError(ErrorEvent.HError);
     var UserHandler = this;
     this.Init = function (initCallback) {
+
         ConnectDataBase();
+
         function ConnectDataBase() {
-
-            // var config = JSON.parse(fs.readFileSync('DBCredentials.json', 'utf8'));
-
             sql.connect(dbconfig, function (err) {
                 // ... error checks
                 if (err !== undefined && err !== null) {
@@ -66,7 +69,37 @@ module.exports = function (debug) {
             initCallback();
         }
 
+        function CheckString(value, name) {
+            if (value.length < 5) {
+                return { "error": name + " has a minimum of 5 characters." };
+            }
+            if (value.length > 200) {
+                return { "error": name + " has a maximum of 200 characters." };
+            }
+            var match = value.match(/^[0-9,\+-@.A-Za-z ]+$/);
+            if (match === null || match === undefined) {
+                return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
+            }
+        }
+
+/**
+ * attemps database search for given username and password
+ * @returns {void}
+ * @param {string} username the username of the user
+ * @param {string} password the password of the user
+ * @param {function} callback the function that gets called on completion calls ({bool}loggedin, {user}user or {string}error)
+ */
         this.Login = function (username, password, callback) {
+            var usernamei = CheckString(username, "Username");
+            if (usernamei.error !== undefined) {
+                callback(false, usernamei.error);
+                return;
+            }
+            var passwordi = CheckString(password, "Password");
+            if (passwordi.error !== undefined) {
+                callback(false, passwordi.error);
+                return;
+            }
             db.Match(sql, 'users', ['username', 'password'], [username, password], function (loggedin, recordset) {
                 var user;
                 if (loggedin) {
@@ -76,7 +109,30 @@ module.exports = function (debug) {
             });
         };
 
+/**
+ * attemps user insertion in database
+ * @returns {void}
+ * @param {string} username the username of the user
+ * @param {string} password the password of the user
+ * @param {string} email the email of the user
+ * @param {function} callback the function that gets called on completion calls ({bool}success,{string}error or {undefined})
+ */
         this.Register = function (username, password, email, callback) {
+            var usernamei = CheckString(username, "Username");
+            if (usernamei.error !== undefined) {
+                callback(false, usernamei.error);
+                return;
+            }
+            var passwordi = CheckString(password, "Password");
+            if (passwordi.error !== undefined) {
+                callback(false, passwordi.error);
+                return;
+            }
+            var emaili = CheckString(email, "Email");
+            if (emaili.error !== undefined) {
+                callback(false, emaili.error);
+                return;
+            }
             db.Match(sql, 'users', 'username', username, function (match) {
                 if (match) {
                     callback({
@@ -93,8 +149,17 @@ module.exports = function (debug) {
                         });
                         return;
                     }
-                    // todo: insert in database and return success
-                    // callback({ "success": true });
+                    db.Insert(sql, 'users', ["email", "username", "password", "totalebestanden", "groottebestanden", "dataplan"], [email, username, password, 0, 0, 0], function (success) {
+                        if (!success) {
+                            callback({
+                                "error": "Database query failed",
+                                "success": false
+                            });
+                            return;
+                        }
+                        callback({ "success": true });
+                        return;
+                    });
                 });
             });
         };
