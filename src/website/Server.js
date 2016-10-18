@@ -19,32 +19,33 @@ app.use(function(req,res,next){
 });
 
 app.post("/register",function (req, res) {
-    
     var name = req.body.username;
     var pass = req.body.password;
     var email = req.body.email;
-    UH.Register(name,pass,email,function callback(registered,error){
+    var response;
+    UserHandler.Register(name,pass,email,function callback(registered,error){
         if(registered){
             response= {registered: registered};
         }
         else{
             response = {registered: registered, error: error};
         }
-    })
-    /*console.log("----------------body--------------");
+    });
+    /*
+    console.log("----------------body--------------");
     //console.log(req);
     //var answer = req;
-    console.log(name +" - " + pass);
-    console.log("----------------------------------");*/
-    
+    console.log(name +" - " + pass + "-" + email);
+    console.log("----------------------------------");
+    */
     res.send(response);
 });
 
-app.get("/login", function (req, res) {
+app.post("/login", function (req, res) {
     var name = req.body.name;
     var pass = req.body.password;
-    UH.Login(name,pass,function callback(loggedin, user){
-        var response;
+    var response;
+    UserHandler.Login(name,pass,function callback(loggedin, user){
         if(loggedin){
             response = {loggedin: loggedin, user: user};
         }
