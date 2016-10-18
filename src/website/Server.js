@@ -1,5 +1,4 @@
 var debug = process.env.NODE_ENV === "development";
-//var debug = true;
 var fs = require("fs");
 var express = require('express');
 var bodyparser = require('body-parser');
@@ -11,49 +10,50 @@ var UserHandler = new UH(debug);
 
 app.use(bodyparser.json());
 
-app.use(function(req,res,next){
-    res.header("Acces-Control-Allow-Origin","*");
+app.use(function (req, res, next) {
+    res.header("Acces-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
     next();
 });
 
-app.post("/register",function (req, res) {
+app.post("/register", function (req, res) {
     var name = req.body.username;
     var pass = req.body.password;
     var email = req.body.email;
     var response;
-    UserHandler.Register(name,pass,email,function callback(registered,error){
-        if(registered){
-            response= {registered: registered};
+    UserHandler.Register(name, pass, email, function (registered, error) {
+        if (registered) {
+            response = { "registered": registered };
         }
-        else{
-            response = {registered: registered, error: error};
+        else {
+            response = {
+                "registered": registered,
+                "error": error
+            };
         }
         res.send(response);
     });
-    /*
-    console.log("----------------body--------------");
-    //console.log(req);
-    //var answer = req;
-    console.log(name +" - " + pass + "-" + email);
-    console.log("----------------------------------");
-    */
-    
 });
 
 app.post("/login", function (req, res) {
     var name = req.body.username;
     var pass = req.body.password;
     var response;
-    UserHandler.Login(name,pass,function callback(loggedin, user){
-        if(loggedin){
-            response = {loggedin: loggedin, user: user};
+    UserHandler.Login(name, pass, function (loggedin, user) {
+        if (loggedin) {
+            response = {
+                "loggedin": loggedin,
+                "user": user
+            };
         }
-        else{
-            response = {loggedin: loggedin, error: user};
+        else {
+            response = {
+                "loggedin": loggedin,
+                "error": user
+            };
         }
-        res.send(response);         
+        res.send(response);
     });
 
 });
@@ -71,10 +71,6 @@ UserHandler.Init(function (err) {
     app.get('/', function (req, res) {
         res.sendFile(__dirname + "/" + "index.html");
     });
-/*
-function Log(err) {
-    console.log(err);    
-*/
     function Log(log) {
         if (Error !== undefined) {
             Error.HError(log);
@@ -100,7 +96,7 @@ function Log(err) {
     PublishDir("/css");
     PublishDir("/fonts");
     PublishDir("/images");
-    if(debug){
+    if (debug) {
         PublishDir("/Debug");
     }
 
