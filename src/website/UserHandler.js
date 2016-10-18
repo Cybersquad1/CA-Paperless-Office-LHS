@@ -107,6 +107,19 @@ module.exports = function (debug) {
                     callback(match, user);
                 });
             }
+            else {
+                callback(false);
+                return;
+            }
+        };
+
+        this.SetSessionUser = function (session, user) {
+            if (user !== undefined) {
+                session.user = {
+                    "id": user.id,
+                    "loggedin": user.loggedin
+                };
+            }
         };
 
         /**
