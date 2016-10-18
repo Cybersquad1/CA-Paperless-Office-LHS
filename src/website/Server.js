@@ -30,6 +30,7 @@ app.post("/register",function (req, res) {
         else{
             response = {registered: registered, error: error};
         }
+        res.send(response);
     });
     /*
     console.log("----------------body--------------");
@@ -38,7 +39,7 @@ app.post("/register",function (req, res) {
     console.log(name +" - " + pass + "-" + email);
     console.log("----------------------------------");
     */
-    res.send(response);
+    
 });
 
 app.post("/login", function (req, res) {
@@ -51,9 +52,10 @@ app.post("/login", function (req, res) {
         }
         else{
             response = {loggedin: loggedin, error: user};
-        }            
+        }
+        res.send(response);         
     });
-    res.send(response);
+    
 });
 
 if (debug) {
