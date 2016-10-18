@@ -43,7 +43,7 @@ app.post("/register",function (req, res) {
 });
 
 app.post("/login", function (req, res) {
-    var name = req.body.name;
+    var name = req.body.username;
     var pass = req.body.password;
     var response;
     UserHandler.Login(name,pass,function callback(loggedin, user){
@@ -55,7 +55,7 @@ app.post("/login", function (req, res) {
         }
         res.send(response);         
     });
-    
+
 });
 
 if (debug) {
