@@ -91,12 +91,12 @@ module.exports = function (debug) {
  */
         this.Login = function (username, password, callback) {
             var usernamei = CheckString(username, "Username");
-            if (usernamei.error !== undefined) {
+            if (usernamei !== undefined && usernamei.error !== undefined) {
                 callback(false, usernamei.error);
                 return;
             }
             var passwordi = CheckString(password, "Password");
-            if (passwordi.error !== undefined) {
+            if (passwordi !== undefined && passwordi.error !== undefined) {
                 callback(false, passwordi.error);
                 return;
             }
@@ -109,27 +109,27 @@ module.exports = function (debug) {
             });
         };
 
-/**
- * attemps user insertion in database
- * @returns {void}
- * @param {string} username the username of the user
- * @param {string} password the password of the user
- * @param {string} email the email of the user
- * @param {function} callback the function that gets called on completion calls ({bool}success,{string}error or {undefined})
- */
+        /**
+         * attemps user insertion in database
+         * @returns {void}
+         * @param {string} username the username of the user
+         * @param {string} password the password of the user
+         * @param {string} email the email of the user
+         * @param {function} callback the function that gets called on completion calls ({bool}success,{string}error or {undefined})
+         */
         this.Register = function (username, password, email, callback) {
             var usernamei = CheckString(username, "Username");
-            if (usernamei.error !== undefined) {
+            if (usernamei !== undefined && usernamei.error !== undefined) {
                 callback(false, usernamei.error);
                 return;
             }
             var passwordi = CheckString(password, "Password");
-            if (passwordi.error !== undefined) {
+            if (passwordi !== undefined && passwordi.error !== undefined) {
                 callback(false, passwordi.error);
                 return;
             }
             var emaili = CheckString(email, "Email");
-            if (emaili.error !== undefined) {
+            if (emaili !== undefined && emaili.error !== undefined) {
                 callback(false, emaili.error);
                 return;
             }
