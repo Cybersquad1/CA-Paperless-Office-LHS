@@ -95,7 +95,7 @@ function Log(err) {
     PublishDir("/js");
     PublishDir("/css");
     PublishDir("/fonts");
-    PublishDir("/images")
+    PublishDir("/images");
     if(debug){
         PublishDir("/Debug");
     }
