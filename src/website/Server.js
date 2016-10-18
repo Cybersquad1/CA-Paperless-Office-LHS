@@ -20,9 +20,9 @@ app.use(function(req,res,next){
 
 app.post("/register",function (req, res) {
     
-    var name = req.body.Name;
-    var pass = req.body.Password;
-    var email = req.body.Email;
+    var name = req.body.username;
+    var pass = req.body.password;
+    var email = req.body.email;
     UH.Register(name,pass,email,function callback(registered,error){
         if(registered){
             response= {registered: registered};
@@ -41,14 +41,15 @@ app.post("/register",function (req, res) {
 });
 
 app.get("/login", function (req, res) {
-    var name = req.body.Name;
-    var pass = req.body.Password;    
+    var name = req.body.name;
+    var pass = req.body.password;
     UH.Login(name,pass,function callback(loggedin, user){
+        var response;
         if(loggedin){
-            var response = {loggedin: loggedin, user: user};
+            response = {loggedin: loggedin, user: user};
         }
         else{
-            var response = {loggedin: loggedin, error: user};
+            response = {loggedin: loggedin, error: user};
         }            
     });
     res.send(response);

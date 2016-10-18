@@ -1,11 +1,16 @@
-var user = "Dummy";
-var pass = "justAtest";
 var app = angular.module("myapp",[]);
 
 var logindata = {
-    Name: "Dummy",
-    Password: "test"
+    username: "Dummy",
+    password: "test"
 };
+var Registerdata = {
+    username: "Dummy",
+    password: "test",
+    email: "Dummy@gmail.be"
+}
+
+
 var data = JSON.stringify(logindata);
 
 app.controller("mijnCtrl",function ($scope,$http ){
