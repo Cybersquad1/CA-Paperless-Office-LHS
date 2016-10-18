@@ -7,6 +7,9 @@ var DB = require('./DBTools.js');
 var Eh = require("./ErrorHandler.js");
 var sql = require('mssql');
 var dbconfig = require('./DBCredentials.json');
+var sessionsecret = require('./SessionSecret.json');
+var Exsession = require('express-session');
+var MSSQLStore = require('connect-mssql')(Exsession);
 
 /**
  * @constructor
@@ -17,7 +20,7 @@ module.exports = function (debug) {
     var db = new DB();
     db.ErrorEvent.SetOnError(ErrorEvent.HError);
     var UserHandler = this;
-    this.Init = function (initCallback) {
+    this.Init = function (app, initCallback) {
 
         ConnectDataBase();
 
@@ -66,6 +69,16 @@ module.exports = function (debug) {
 
         function CheckDocumentTable() {
             // TODO: check the table
+            CreateSessions();
+        }
+
+        function CreateSessions() {
+            app.use(Exsession({
+                "resave": false,
+                "saveUninitialized": false,
+                "secret": sessionsecret.secret,
+                "store": new MSSQLStore(dbconfig) // options are optional
+            }));
             initCallback();
         }
 
@@ -82,13 +95,27 @@ module.exports = function (debug) {
             }
         }
 
-/**
- * attemps database search for given username and password
- * @returns {void}
- * @param {string} username the username of the user
- * @param {string} password the password of the user
- * @param {function} callback the function that gets called on completion calls ({bool}loggedin, {user}user or {string}error)
- */
+        /**
+         * Gets The user if logged in with a session
+         * @returns {void}
+         * @param {object} session the session from request
+         * @param {function} callback gets called with ({bool}matchfound, {user}user)
+         */
+        this.GetUserFromSession = function (session, callback) {
+            if (session.user && session.user.id && session.user.loggedin) {
+                db.Match(sql, 'users', 'id', session.user.id, function (match, user) {
+                    callback(match, user);
+                });
+            }
+        };
+
+        /**
+         * attemps database search for given username and password
+         * @returns {void}
+         * @param {string} username the username of the user
+         * @param {string} password the password of the user
+         * @param {function} callback the function that gets called on completion calls ({bool}loggedin, {user}user or {string}error)
+         */
         this.Login = function (username, password, callback) {
             var usernamei = CheckString(username, "Username");
             if (usernamei.error !== undefined) {
@@ -109,14 +136,14 @@ module.exports = function (debug) {
             });
         };
 
-/**
- * attemps user insertion in database
- * @returns {void}
- * @param {string} username the username of the user
- * @param {string} password the password of the user
- * @param {string} email the email of the user
- * @param {function} callback the function that gets called on completion calls ({bool}success,{string}error or {undefined})
- */
+        /**
+         * attemps user insertion in database
+         * @returns {void}
+         * @param {string} username the username of the user
+         * @param {string} password the password of the user
+         * @param {string} email the email of the user
+         * @param {function} callback the function that gets called on completion calls ({bool}success,{string}error or {undefined})
+         */
         this.Register = function (username, password, email, callback) {
             var usernamei = CheckString(username, "Username");
             if (usernamei.error !== undefined) {
