@@ -90,19 +90,19 @@
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Username or Email</label>
                                         <div class="col-sm-9">
-                                            <input type="text" class="form-control" id="usernameL" placeholder="Username or Email">
+                                            <input type="text" class="form-control" ng-model="loginUsername" placeholder="Username or Email">
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Password</label>
                                         <div class="col-sm-9">
-                                            <input type="password" class="form-control" id="passwordL" placeholder="Password">
+                                            <input type="password" class="form-control" ng-model="loginPassword" placeholder="Password">
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-5"></div>
                                         <div class="col-sm-7">
-                                            <button type="button" class="btn btn-primary">Submit</button>
+                                            <button type="button" class="btn btn-primary" ng-click="login()">Submit</button>
                                         </div>
                                     </div>
                                 </form>
@@ -113,31 +113,31 @@
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Username</label>
                                         <div class="col-sm-9">
-                                            <input type="text" class="form-control" id="usernameR" placeholder="Username">
+                                            <input type="text" class="form-control" ng-model="registerUsername" placeholder="Username">
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Email</label>
                                         <div class="col-sm-9">
-                                            <input type="email" class="form-control" id="emailR" placeholder="Email">
+                                            <input type="email" class="form-control" ng-model="registerEmail" placeholder="Email">
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Password</label>
                                         <div class="col-sm-9">
-                                            <input type="password" class="form-control" id="passwordR" placeholder="Password">
+                                            <input type="password" class="form-control" ng-model="registerPassword" placeholder="Password">
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-sm-3 control-label">Confirm Password</label>
                                         <div class="col-sm-9">
-                                            <input type="password" class="form-control" id="confirmpasswordR" placeholder="Confirm Password">
+                                            <input type="password" class="form-control" placeholder="Confirm Password">
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-sm-5"></div>
                                         <div class="col-sm-7">
-                                            <button type="button" class="btn btn-primary">Register</button>
+                                            <button type="button" class="btn btn-primary" ng-click="register()">Register</button>
                                         </div>
                                     </div>
                                 </form>
@@ -147,7 +147,7 @@
                 </div>
             </div><!-- modal-content -->
         </div><!-- modal-dialog -->
-    </div><!-- /modal -->
+    </div>
 
     <!-- Carousel -->
 	<div id="myCarousel" class="carousel slide" data-ride="carousel">
