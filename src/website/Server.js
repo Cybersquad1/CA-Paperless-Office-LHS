@@ -12,7 +12,7 @@ if (debug) {
     console.log('Application is running in debug mode!');
 }
 
-UserHandler.Init(function (err) {
+UserHandler.Init(app, function (err) {
     if (err !== undefined) {
         console.error(err);
         throw err;
@@ -70,15 +70,15 @@ UserHandler.Init(function (err) {
         var pass = req.body.password;
         var email = req.body.email;
         var response;
-        UserHandler.Register(name, pass, email, function (registered, error) {
+        UserHandler.Register(name, pass, email, function (registered, errorOrUser) {
             if (registered) {
                 response = { "registered": registered };
-                // todo: change sessionuser in UserHandler
+                UserHandler.SetSessionUser(req.session, errorOrUser);
             }
             else {
                 response = {
                     "registered": registered,
-                    "error": error
+                    "error": errorOrUser
                 };
             }
             res.send(response);
@@ -95,7 +95,7 @@ UserHandler.Init(function (err) {
                     "loggedin": loggedin,
                     "user": user
                 };
-                // todo: change sessionuser in UserHandler
+                UserHandler.SetSessionUser(req.session, user);
             }
             else {
                 response = {

@@ -140,7 +140,7 @@ module.exports = function (debug) {
                 callback(false, passwordi.error);
                 return;
             }
-            db.Match(sql, 'users', ['username', 'password'], [username, password], function (loggedin, recordset) {
+            db.MatchObject(sql, 'users', { "username": username, "password": password }, function (loggedin, recordset) {
                 var user;
                 if (loggedin) {
                     user = recordset[0];
@@ -173,31 +173,30 @@ module.exports = function (debug) {
                 callback(false, emaili.error);
                 return;
             }
-            db.Match(sql, 'users', 'username', username, function (match) {
+            var user = {
+                "email": email,
+                "username": username,
+                "password": password,
+                "totalebestanden": 0,
+                "groottebestanden": 0,
+                "dataplan": 0
+            };
+            db.MatchObject(sql, 'users', { "username": username }, function (match) {
                 if (match) {
-                    callback({
-                        "error": "Username is already in use",
-                        "success": false
-                    });
+                    callback(false, "Username is already in use");
                     return;
                 }
-                db.Match(sql, 'users', 'email', email, function (match2) {
+                db.MatchObject(sql, 'users', { "email": email }, function (match2) {
                     if (match2) {
-                        callback({
-                            "error": "Email is already in use",
-                            "success": false
-                        });
+                        callback(false, "Email is already in use");
                         return;
                     }
-                    db.Insert(sql, 'users', ["email", "username", "password", "totalebestanden", "groottebestanden", "dataplan"], [email, username, password, 0, 0, 0], function (success) {
+                    db.InsertObject(sql, 'users', user, function (success) {
                         if (!success) {
-                            callback({
-                                "error": "Database query failed",
-                                "success": false
-                            });
+                            callback(false, "Database query failed");
                             return;
                         }
-                        callback({ "success": true });
+                        callback(true, user);
                         return;
                     });
                 });
