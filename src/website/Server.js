@@ -53,7 +53,6 @@ UserHandler.Init(app, function (err) {
         UserHandler.GetUserFromSession(req.session, function (match, user) {
             if (match) {
                 var cleanuser = user;
-                delete cleanuser.password;
                 res.json({
                     "loggedin": true,
                     "user": cleanuser
@@ -63,6 +62,11 @@ UserHandler.Init(app, function (err) {
                 res.json({ "loggedin": false });
             }
         });
+    });
+
+    app.get("/logout", function (req, res) {
+        UserHandler.SetSessionUser(req.session, null);
+        res.json({ "logout": "done" });
     });
 
     app.post("/register", function (req, res) {
@@ -84,7 +88,7 @@ UserHandler.Init(app, function (err) {
                     "error": errorOrUser
                 };
             }
-            res.send(response);
+            res.json(response);
         });
     });
 
@@ -106,7 +110,7 @@ UserHandler.Init(app, function (err) {
                     "error": user
                 };
             }
-            res.send(response);
+            res.json(response);
         });
 
     });

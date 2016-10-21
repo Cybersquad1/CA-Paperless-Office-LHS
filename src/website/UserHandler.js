@@ -103,7 +103,12 @@ module.exports = function (debug) {
          */
         this.GetUserFromSession = function (session, callback) {
             if (session.user && session.user.id && session.user.loggedin) {
-                db.Match(sql, 'users', 'id', session.user.id, function (match, user) {
+                db.Match(sql, 'users', 'id', session.user.id, function (match, users) {
+                    var user;
+                    if (match) {
+                        user = users[0];
+                        delete user.password;
+                    }
                     callback(match, user);
                 });
             }
@@ -114,11 +119,14 @@ module.exports = function (debug) {
         };
 
         this.SetSessionUser = function (session, user) {
-            if (user !== undefined) {
+            if (user !== undefined && user !== null) {
                 session.user = {
                     "id": user.id,
-                    "loggedin": user.loggedin
+                    "loggedin": true
                 };
+            }
+            else {
+                delete session.user;
             }
         };
 
@@ -144,6 +152,7 @@ module.exports = function (debug) {
                 var user;
                 if (loggedin) {
                     user = recordset[0];
+                    delete user.password;
                 }
                 callback(loggedin, user);
             });
@@ -196,6 +205,7 @@ module.exports = function (debug) {
                             callback(false, "Database query failed");
                             return;
                         }
+                        delete user.password;
                         callback(true, user);
                         return;
                     });
