@@ -72,7 +72,10 @@ UserHandler.Init(app, function (err) {
         var response;
         UserHandler.Register(name, pass, email, function (registered, errorOrUser) {
             if (registered) {
-                response = { "registered": registered };
+                response = {
+                    "registered": registered,
+                    "user": errorOrUser
+                };
                 UserHandler.SetSessionUser(req.session, errorOrUser);
             }
             else {
