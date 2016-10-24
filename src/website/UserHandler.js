@@ -120,7 +120,7 @@ module.exports = function (debug) {
             var document = {
                 "name": name,
                 "userid": userid,
-                "size": size,
+                "size": size
             };
             db.InsertObject(sql, 'documents', document, function (success) {
                 if (!success) {
@@ -138,13 +138,13 @@ module.exports = function (debug) {
             });
         }
 
-        function getDocument(id) {
-            db.MatchObject(sql, 'documents', { "name": name, "userid": userid, "size": size }, function (match, recordset) {
+        function getDocument(object, callback) {
+            db.MatchObject(sql, 'documents', object, function (match, recordset) {
                 if (!match) {
                     callback(false, "Data not found");
                     return;
                 }
-                callback(true, recordset[recordset.length - 1]);
+                callback(true, recordset);
                 return;
             }, 'id');
         }
