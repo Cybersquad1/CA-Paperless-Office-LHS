@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Dummypage</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.5/angular.min.js"></script>
+	<script src="Dummyjavascript.js"></script>
+</head>
+
+<body ng-app="myapp">
+	<div ng-controller="mijnCtrl">
+		<button ng-click="reg()" type="button" class="btn btn-primairy">Register</button>
+		<button ng-click="log()" type="button" class="btn btn-primairy">Login</button>
+		<button ng-click="out()" type="button" class="btn btn-primairy">Logout</button>
+		<button ng-click="get()" type="button" class="btn btn-primairy">Get User</button>
+		<p>{{ text }}</p>
+	</div>
+</body>

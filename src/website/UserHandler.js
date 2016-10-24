@@ -7,6 +7,9 @@ var DB = require('./DBTools.js');
 var Eh = require("./ErrorHandler.js");
 var sql = require('mssql');
 var dbconfig = require('./DBCredentials.json');
+var sessionsecret = require('./SessionSecret.json');
+var Exsession = require('express-session');
+var MSSQLStore = require('connect-mssql')(Exsession);
 
 /**
  * @constructor
@@ -17,7 +20,7 @@ module.exports = function (debug) {
     var db = new DB();
     db.ErrorEvent.SetOnError(ErrorEvent.HError);
     var UserHandler = this;
-    this.Init = function (initCallback) {
+    this.Init = function (app, initCallback) {
 
         ConnectDataBase();
 
@@ -66,6 +69,16 @@ module.exports = function (debug) {
 
         function CheckDocumentTable() {
             // TODO: check the table
+            CreateSessions();
+        }
+
+        function CreateSessions() {
+            app.use(Exsession({
+                "resave": false,
+                "saveUninitialized": false,
+                "secret": sessionsecret.secret,
+                "store": new MSSQLStore(dbconfig) // options are optional
+            }));
             initCallback();
         }
 
@@ -82,13 +95,48 @@ module.exports = function (debug) {
             }
         }
 
-/**
- * attemps database search for given username and password
- * @returns {void}
- * @param {string} username the username of the user
- * @param {string} password the password of the user
- * @param {function} callback the function that gets called on completion calls ({bool}loggedin, {user}user or {string}error)
- */
+        /**
+         * Gets The user if logged in with a session
+         * @returns {void}
+         * @param {object} session the session from request
+         * @param {function} callback gets called with ({bool}matchfound, {user}user)
+         */
+        this.GetUserFromSession = function (session, callback) {
+            if (session.user && session.user.id && session.user.loggedin) {
+                db.Match(sql, 'users', 'id', session.user.id, function (match, users) {
+                    var user;
+                    if (match) {
+                        user = users[0];
+                        delete user.password;
+                    }
+                    callback(match, user);
+                });
+            }
+            else {
+                callback(false);
+                return;
+            }
+        };
+
+        this.SetSessionUser = function (session, user) {
+            if (user !== undefined && user !== null) {
+                session.user = {
+                    "id": user.id,
+                    "loggedin": true
+                };
+            }
+            else {
+                delete session.user;
+            }
+        };
+
+        /**
+         * attemps database search for given username and password
+         * @returns {void}
+         * @param {string} username the username of the user
+         * @param {string} password the password of the user
+         * @param {function} callback the function that gets called on completion calls ({bool}loggedin, {user}user or {string}error)
+         */
         this.Login = function (username, password, callback) {
             var usernamei = CheckString(username, "Username");
             if (usernamei !== undefined && usernamei.error !== undefined) {
@@ -100,10 +148,11 @@ module.exports = function (debug) {
                 callback(false, passwordi.error);
                 return;
             }
-            db.Match(sql, 'users', ['username', 'password'], [username, password], function (loggedin, recordset) {
+            db.MatchObject(sql, 'users', { "username": username, "password": password }, function (loggedin, recordset) {
                 var user;
                 if (loggedin) {
                     user = recordset[0];
+                    delete user.password;
                 }
                 callback(loggedin, user);
             });
@@ -133,31 +182,31 @@ module.exports = function (debug) {
                 callback(false, emaili.error);
                 return;
             }
-            db.Match(sql, 'users', 'username', username, function (match) {
+            var user = {
+                "email": email,
+                "username": username,
+                "password": password,
+                "totalebestanden": 0,
+                "groottebestanden": 0,
+                "dataplan": 0
+            };
+            db.MatchObject(sql, 'users', { "username": username }, function (match) {
                 if (match) {
-                    callback({
-                        "error": "Username is already in use",
-                        "success": false
-                    });
+                    callback(false, "Username is already in use");
                     return;
                 }
-                db.Match(sql, 'users', 'email', email, function (match2) {
+                db.MatchObject(sql, 'users', { "email": email }, function (match2) {
                     if (match2) {
-                        callback({
-                            "error": "Email is already in use",
-                            "success": false
-                        });
+                        callback(false, "Email is already in use");
                         return;
                     }
-                    db.Insert(sql, 'users', ["email", "username", "password", "totalebestanden", "groottebestanden", "dataplan"], [email, username, password, 0, 0, 0], function (success) {
+                    db.InsertObject(sql, 'users', user, function (success) {
                         if (!success) {
-                            callback({
-                                "error": "Database query failed",
-                                "success": false
-                            });
+                            callback(false, "Database query failed");
                             return;
                         }
-                        callback({ "success": true });
+                        delete user.password;
+                        callback(true, user);
                         return;
                     });
                 });

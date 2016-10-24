@@ -7,3 +7,4 @@ src/website/DBCredentials.json
 src/website/jsconfig.json
 src/website/.vscode/
 src/website/.eslintrc.json
+src/website/SessionSecret.json
