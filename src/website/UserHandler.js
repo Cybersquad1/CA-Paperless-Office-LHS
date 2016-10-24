@@ -10,6 +10,9 @@ var dbconfig = require('./DBCredentials.json');
 var sessionsecret = require('./SessionSecret.json');
 var Exsession = require('express-session');
 var MSSQLStore = require('connect-mssql')(Exsession);
+var azure = require('azure-storage');
+var azureconfig = require('./azure.json');
+var blobSvc = azure.createBlobService(azureconfig.connectionstring);
 
 /**
  * @constructor
@@ -77,8 +80,17 @@ module.exports = function (debug) {
                         initCallback(err);
                         return;
                     }
-                    CreateSessions();
+                    CheckContainer();
                 });
+        }
+
+        function CheckContainer() {
+            blobSvc.createContainerIfNotExists('paperless', function (error, result, response) {
+                if (!error) {
+                    // Container exists and is private
+                    CreateSessions();
+                }
+            });
         }
 
         function CreateSessions() {
@@ -88,7 +100,6 @@ module.exports = function (debug) {
                 "secret": sessionsecret.secret,
                 "store": new MSSQLStore(dbconfig) // options are optional
             }));
-            createDocument("test", 1, 37000);
             initCallback();
         }
 
@@ -251,6 +262,29 @@ module.exports = function (debug) {
                         delete user.password;
                         callback(true, user);
                         return;
+                    });
+                });
+            });
+        };
+
+        this.Upload = function (session, stream, callback) {
+            this.GetUserFromSession(session, function (match, user) {
+                if (!match) {
+                    callback(false, 'User not logged in');
+                    return;
+                }
+                createDocument(stream.filename, user.id, stream.byteCount, function (success, id) {
+                    if (!success) {
+                        callback(false, id);
+                        return;
+                    }
+                    blobSvc.createBlockBlobFromStream('paperless', id, stream, stream.byteCount, function (error) {
+                        if (error) {
+                            ErrorEvent.HError(error, 1);
+                            callback(false, 'error uploading to blob');
+                            return;
+                        }
+                        callback(true);
                     });
                 });
             });
