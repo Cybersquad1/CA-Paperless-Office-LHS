@@ -4,12 +4,7 @@ var express = require('express');
 var bodyparser = require('body-parser');
 var app = express();
 
-var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart();
-
 var multiparty = require("multiparty");
-//var azure = require("azure");
-
 
 var UH = require('./UserHandler.js');
 var EE = require('./ErrorEvent.js');
@@ -132,24 +127,15 @@ UserHandler.Init(app, function (err) {
         res.sendFile(__dirname + "/" + "index.html");
     });
 
-    app.post("/upload"/*, multipartMiddleware*/, function (req, res) {
-        //console.log(req.body, req.files);
-
-        //var blobService = azure.createBlobService();
+    app.post("/upload", function (req, res) {
         var form = new multiparty.Form();
         form.on('part', function (part) {
             if (!part.filename) return;
 
             var size = part.byteCount;
             var name = part.filename;
-            console.log("size:"+ size +" Filename:" +name);
-            //console.log(part);
-            //var container = 'blobContainerName';
+            console.log("size:" + size + " Filename:" + name);
 
-            /*blobService.createBlockBlobFromStream(container, name, part, size, function (error) {
-                if (error) {
-                    // error handling
-                }*/
         });
         form.parse(req);
 

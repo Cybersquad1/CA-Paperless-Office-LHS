@@ -69,7 +69,16 @@ module.exports = function (debug) {
 
         function CheckDocumentTable() {
             // TODO: check the table
-            CreateSessions();
+            db.Exists(sql,
+                'documents',
+                'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid int, size int);', undefined,
+                function (err) {
+                    if (err !== undefined) {
+                        initCallback(err);
+                        return;
+                    }
+                    CreateSessions();
+                });
         }
 
         function CreateSessions() {
@@ -79,6 +88,7 @@ module.exports = function (debug) {
                 "secret": sessionsecret.secret,
                 "store": new MSSQLStore(dbconfig) // options are optional
             }));
+            createDocument("test", 1, 37000);
             initCallback();
         }
 
@@ -93,6 +103,39 @@ module.exports = function (debug) {
             if (match === null || match === undefined) {
                 return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
             }
+        }
+
+        function createDocument(name, userid, size, callback) {
+            var document = {
+                "name": name,
+                "userid": userid,
+                "size": size,
+            };
+            db.InsertObject(sql, 'documents', document, function (success) {
+                if (!success) {
+                    callback(false, "Database query failed");
+                    return;
+                }
+                db.MatchObject(sql, 'documents', { "name": name, "userid": userid, "size": size }, function (match, recordset) {
+                    if (!match) {
+                        callback(false, "Data not found");
+                        return;
+                    }
+                    callback(true, recordset[recordset.length - 1].id);
+                    return;
+                }, 'id');
+            });
+        }
+
+        function getDocument(id) {
+            db.MatchObject(sql, 'documents', { "name": name, "userid": userid, "size": size }, function (match, recordset) {
+                if (!match) {
+                    callback(false, "Data not found");
+                    return;
+                }
+                callback(true, recordset[recordset.length - 1]);
+                return;
+            }, 'id');
         }
 
         /**
