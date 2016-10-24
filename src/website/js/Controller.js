@@ -1,7 +1,7 @@
 /**
  * Created by Hannelore on 4/10/2016.
  */
-var app = angular.module('myApp', []);
+var app = angular.module('myApp', ['angularFileUpload']);
 app.controller('PaperlessController', function ($scope, $http) {
     $scope.login = function () {
         $scope.loginData = {

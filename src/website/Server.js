@@ -118,6 +118,9 @@ UserHandler.Init(app, function (err) {
     app.get('/', function (req, res) {
         res.sendFile(__dirname + "/" + "index.html");
     });
+    app.get('/main.html', function (req, res) {
+        res.sendFile(__dirname + "/" + "main.html");
+    });
 
     PublishDir("/js");
     PublishDir("/css");
