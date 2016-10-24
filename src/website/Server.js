@@ -128,6 +128,9 @@ UserHandler.Init(app, function (err) {
     app.get('/main.html', function (req, res) {
         res.sendFile(__dirname + "/" + "main.html");
     });
+    app.get('/index.html', function (req, res) {
+        res.sendFile(__dirname + "/" + "index.html");
+    });
 
     app.post("/upload"/*, multipartMiddleware*/, function (req, res) {
         //console.log(req.body, req.files);
