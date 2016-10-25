@@ -46,7 +46,9 @@
                         <ul class="nav navbar-nav navbar-right">
                             <li><a href="index.html">Home</a></li>
                             <li class="active"><a href="#">Main page</a></li>
+                            <li><a>Welcome, {{username}}</a></li>
                             <li><a href="#" data-toggle="modal" data-target="#uploadModal">Upload</a></li>
+                            <li ng-if="loggedin"><a href="#" ng-click="logout()">Log Out</a></li>
                         </ul>
                     </div>
                 </div>
