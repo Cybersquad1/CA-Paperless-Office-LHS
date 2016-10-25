@@ -135,12 +135,23 @@ UserHandler.Init(app, function (err) {
             var size = part.byteCount;
             var name = part.filename;
             console.log("size:" + size + " Filename:" + name);
-
+            UserHandler.Upload(req.session, part, function (success, err) {
+                if (!success) {
+                    console.log(err);
+                }
+            });
         });
         form.parse(req);
 
         res.send('File uploaded successfully');
 
+    });
+
+    app.get('/download', function (req, res) {
+        UserHandler.Download(5, function (stream) {
+            res.set('Content-disposition', 'attachment; filename=' + 'name.jpg');
+            stream.pipe(res);
+        });
     });
 
     PublishDir("/js");
