@@ -17,10 +17,10 @@ myApp.directive('fileModel', ['$parse', function ($parse) {
 }]);
 
 myApp.service('fileUpload', ['$http', function ($http) {
-    this.uploadFileToUrl = function (file,id ,uploadUrl) {
+    this.uploadFileToUrl = function (file, id, uploadUrl) {
         var fd = new FormData();
         fd.append('file', file);
-        fd.append('id',id )
+        fd.append('id', id)
 
         $http.post(uploadUrl, fd, {
             transformRequest: angular.identity,
