@@ -129,18 +129,27 @@ UserHandler.Init(app, function (err) {
 
     app.post("/upload", function (req, res) {
         var form = new multiparty.Form();
+        var id, file;
         form.on('part', function (part) {
-            if (!part.filename) return;
 
+
+            if (!part.filename) return;
             var size = part.byteCount;
             var name = part.filename;
             console.log("size:" + size + " Filename:" + name);
 
         });
-        form.parse(req);
+        form.parse(req, function (err, fields, files) {
+            id = fields.id[0];
+            file = files.file;
+            //console.log(id[0]);
+        });
 
-        res.send('File uploaded successfully');
-
+        UserHandler.upload(req.session, file /*this? not sure*/, id, function (succes, idOrError) {
+            if (succes) {
+                res.send('File uploaded successfully');
+            }
+        });
     });
 
     PublishDir("/js");

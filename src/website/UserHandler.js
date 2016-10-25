@@ -267,10 +267,14 @@ module.exports = function (debug) {
             });
         };
 
-        this.Upload = function (session, stream, callback) {
+        this.Upload = function (session, stream, userid, callback) {
             this.GetUserFromSession(session, function (match, user) {
                 if (!match) {
                     callback(false, 'User not logged in');
+                    return;
+                }
+                if (user.id !== userid) {
+                    callback(false, "User id's not the same");
                     return;
                 }
                 createDocument(stream.filename, user.id, stream.byteCount, function (success, id) {

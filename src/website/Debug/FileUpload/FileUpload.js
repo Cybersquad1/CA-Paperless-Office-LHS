@@ -17,9 +17,10 @@ myApp.directive('fileModel', ['$parse', function ($parse) {
 }]);
 
 myApp.service('fileUpload', ['$http', function ($http) {
-    this.uploadFileToUrl = function (file, uploadUrl) {
+    this.uploadFileToUrl = function (file,id ,uploadUrl) {
         var fd = new FormData();
         fd.append('file', file);
+        fd.append('id',id )
 
         $http.post(uploadUrl, fd, {
             transformRequest: angular.identity,
@@ -37,11 +38,12 @@ myApp.service('fileUpload', ['$http', function ($http) {
 myApp.controller('myCtrl', ['$scope', 'fileUpload', function ($scope, fileUpload) {
     $scope.uploadFile = function () {
         var file = $scope.myFile;
+        var id = "testid"
 
         console.log('file is ');
         console.dir(file);
 
         var uploadUrl = "http://localhost/upload";
-        fileUpload.uploadFileToUrl(file, uploadUrl);
+        fileUpload.uploadFileToUrl(file, id, uploadUrl);
     };
 }]);
