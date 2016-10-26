@@ -129,7 +129,7 @@ UserHandler.Init(app, function (err) {
 
     app.post("/upload", function (req, res) {
         var form = new multiparty.Form();
-        var id, partstream;
+        var id, file;
 
         /*form.on('part', function (part) {
 
@@ -153,18 +153,21 @@ UserHandler.Init(app, function (err) {
         form.parse(req);
         */
 
-        form.parse(req, function (err, fields, files) {
-            if (err) {
-                console.error(err.message);
-                return
+        form.parse(req, function (error, fields, files) {
+            if (error) {
+                console.error(error.message);
+                return;
             }
             id = fields.id[0];
             file = files.file[0];
             console.log(files.file[0]);
-
-            UserHandler.Upload(req.session, file /*this? not sure*/, id, function (succes, idOrError) {
+            var str = fs.createReadStream(file.path);
+            str.filename = file.originalFilename;
+            str.size = file.size;
+            UserHandler.Upload(req.session, str, id, function (succes, idOrError) {
                 if (succes) {
                     res.send('File uploaded successfully');
+                    fs.unlinkSync(file.path);
                 }
             });
         });

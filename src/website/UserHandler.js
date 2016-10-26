@@ -140,14 +140,21 @@ module.exports = function (debug) {
                     callback(false, "Database query failed");
                     return;
                 }
-                db.MatchObject(sql, 'documents', document, function (match, recordset) {
-                    if (!match) {
-                        callback(false, "Data not found");
+                var retries = 0;
+                function cb(match, recordset) {
+                    if (!match || recordset.length < 1) {
+                        if (retries > 5) {
+                            callback(false, "Data not found");
+                            return;
+                        }
+                        db.MatchObject(sql, 'documents', document, cb, 'id');
+                        retries++;
                         return;
                     }
                     callback(true, recordset[recordset.length - 1].id);
                     return;
-                }, 'id');
+                }
+                db.MatchObject(sql, 'documents', document, cb, 'id');
             });
         }
 
@@ -172,14 +179,20 @@ module.exports = function (debug) {
                     callback(false, "Database query failed");
                     return;
                 }
-                db.MatchObject(sql, 'files', file, function (match, recordset) {
-                    if (!match) {
-                        callback(false, "Data not found");
-                        return;
+                var retries = 0;
+                function cb(match, recordset) {
+                    if (!match || recordset.length < 1) {
+                        if (retries > 5) {
+                            callback(false, "Data not found");
+                            return;
+                        }
+                        db.MatchObject(sql, 'files', file, cb, 'id');
+                        retries++;
                     }
                     callback(true, recordset[recordset.length - 1].id);
                     return;
-                }, 'id');
+                }
+                db.MatchObject(sql, 'files', file, cb, 'id');
             });
         }
 
@@ -300,16 +313,14 @@ module.exports = function (debug) {
                 });
             });
         };
-        
-        //this.Upload = function (session, stream, userid, callback) {
-        
+
         function rawUpload(documentid, type, stream, callback) {
             createFile(documentid, type, function (success, id) {
                 if (!success) {
                     callback(false, id);
                     return;
                 }
-                blobSvc.createBlockBlobFromStream('paperless', id + ".blob", stream, stream.byteCount, function (error) {
+                blobSvc.createBlockBlobFromStream('paperless', id + ".blob", stream, stream.size, function (error) {
                     if (error) {
                         ErrorEvent.HError(error, 1);
                         callback(false, 'error uploading to blob');
@@ -325,6 +336,10 @@ module.exports = function (debug) {
         var imagepage = 2;
 
         this.Upload = function (session, stream, userid, documentid, callback) {
+            if (callback === undefined) {
+                callback = documentid;
+                documentid = undefined;
+            }
             this.GetUserFromSession(session, function (match, user) {
                 if (!match) {
                     callback(false, 'User not logged in');
@@ -334,22 +349,11 @@ module.exports = function (debug) {
                     callback(false, "User id's not the same");
                     return;
                 }
-                /*createDocument(stream.filename, user.id, stream.byteCount, function (success, id) {
-                    if (!success) {
-                        callback(false, id);
-                        return;
-                    }
-                    blobSvc.createBlockBlobFromStream('paperless', id, stream, stream.byteCount, function (error) {
-                        if (error) {
-                            ErrorEvent.HError(error, 1);
-                            callback(false, 'error uploading to blob');
-                        }*/
-
                 if (documentid !== undefined) {
                     rawUpload(documentid, original, stream, callback);
                 }
                 else {
-                    createDocument(stream.filename, user.id, stream.byteCount, function (success, id) {
+                    createDocument(stream.filename, user.id, stream.size, function (success, id) {
                         if (!success) {
                             callback(false, id);
                             return;
