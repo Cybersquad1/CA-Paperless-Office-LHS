@@ -1,0 +1,20 @@
+body { 
+    padding-top: 65px; 
+}
+
+.tagdiv{
+    display:inline-block;
+    /*margin:10px;*/
+}
+
+.filediv{
+    margin:20px;
+    float:left; 
+    border:solid black;
+}
+
+/*footer{
+    position:absolute;
+    bottom:0;
+    left:0;
+}*/

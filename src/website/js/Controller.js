@@ -16,7 +16,9 @@ app.controller('PaperlessController', function ($scope, $http) {
         $http.post('/login', logindata).then(function (logindatares) {
             console.log(logindatares);
             $scope.loggedin = logindatares.data.loggedin;
+            if ($scope.loggedin) {
             $scope.username = logindatares.data.user.username;
+        }
             if ($scope.loggedin == true) {
                 //Close modal
             }
@@ -75,6 +77,51 @@ app.controller('UploadController', function ($scope, $http, $window) {
 
     //console.log('User registered', registerdata);
     //};
+
+    function init() {
+        $http.get('/getuser').then(function (response) {
+            console.log(response.data);
+            $scope.loggedin = response.data.loggedin;
+            if ($scope.loggedin == false) {
+                console.log("error");
+                $window.location.href = '/index.html';
+            } else {
+                $scope.username = response.data.user.username;
+            }
+        });
+    }
+    init();
+});
+
+app.controller('FileOverview', function ($scope, $http, $window) {
+
+    $scope.files = [
+        {"id":"1","url":"#","name":"test","tags":["test","test2","test3"]},
+        {"id":"2","url":"#","name":"test","tags":["test","test2","test3"]},
+        {"id":"3","url":"#","name":"test","tags":["test","test2","test3"]},
+        {"id":"4","url":"#","name":"test","tags":["test","test2","test3"]},
+        {"id":"5","url":"#","name":"test","tags":["test","test2","test3"]},
+        {"id":"6","url":"#","name":"test","tags":["test","test2","test3"]},
+        {"id":"7","url":"#","name":"test","tags":["test","test2","test3"]},
+        {"id":"8","url":"#","name":"test2","tags":["test3","test5","test6"]}
+    ];
+
+    $scope.filtershow = true;
+
+    $scope.logout = function () {
+        $http.get('/logout').then(function (response) {
+            console.log(response);
+            $scope.loggedin = false;
+            if ($scope.loggedin == false) {
+                $window.location.href = '/index.html';
+            }
+
+        });
+    };
+
+    $scope.fileclick = function(fileID){
+        console.log(fileID);
+    };
 
     function init() {
         $http.get('/getuser').then(function (response) {
