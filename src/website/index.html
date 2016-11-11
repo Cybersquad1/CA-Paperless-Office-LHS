@@ -23,7 +23,7 @@
     <!-- Controller -->
     <script src="/js/Controller.js"></script>
     <!-- SHA512 -->
-    <script src="/js/sha512-min.js"></script>
+    <script src="/js/sha512.js"></script>
     <!-- Stylesheets -->
 	<link href="/css/carousel.css" rel="stylesheet">
     <link href="/css/default.css" rel="stylesheet">
@@ -47,10 +47,10 @@
                     <div id="navbar" class="navbar-collapse collapse">
                         <ul class="nav navbar-nav navbar-right">
                             <li class="active"><a href="index.html">Home</a></li>
-                            <li><a href="main.html">Main page</a></li>
-                            <li><a href="#about">About</a></li>
-                            <li><a href="#contact">Contact</a></li>
-                            <li><a href="#" data-toggle="modal" data-target="#loginModal" >Login/Register</a></li>
+                            <li ng-show="loggedin || registered"><a href="main.html">Main page</a></li>
+                            <li ng-hide="loggedin || registered"><a href="#" data-toggle="modal" data-target="#loginModal" >Login/Register</a></li>
+                            <li ng-show="loggedin || registered"><a href="#">Welcome, {{username}}</a></li>
+                            <li ng-show="loggedin || registered"><a href="#" ng-click="logout()">Log Out</a></li>
                         </ul>
                     </div>
                 </div>
