@@ -13,6 +13,8 @@ var MSSQLStore = require('connect-mssql')(Exsession);
 var azure = require('azure-storage');
 var azureconfig = require('./azure.json');
 var blobSvc = azure.createBlobService(azureconfig.connectionstring);
+var crypto = require('crypto');
+var sha256 = crypto.createHash('sha256');
 
 /**
  * @constructor
@@ -60,7 +62,7 @@ module.exports = function (debug) {
         function CheckUserTable() {
             db.Exists(sql,
                 'users',
-                'CREATE TABLE users([id] int IDENTITY(1,1) PRIMARY KEY, email varchar(255), username varchar(255), password varchar(255), totalebestanden int, groottebestanden int, dataplan tinyint);', undefined,
+                'CREATE TABLE users([id] int IDENTITY(1,1) PRIMARY KEY, email varchar(255), username varchar(255), password varchar(255), salt varchar(255), totalebestanden int, groottebestanden int, dataplan tinyint);', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -75,6 +77,19 @@ module.exports = function (debug) {
             db.Exists(sql,
                 'documents',
                 'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid int, size int);', undefined,
+                function (err) {
+                    if (err !== undefined) {
+                        initCallback(err);
+                        return;
+                    }
+                    CheckFileTable();
+                });
+        }
+
+        function CheckFileTable() {
+            db.Exists(sql,
+                'files',
+                'CREATE TABLE files([id] int IDENTITY(1,1) PRIMARY KEY, document int, type int);', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -120,33 +135,67 @@ module.exports = function (debug) {
             var document = {
                 "name": name,
                 "userid": userid,
-                "size": size,
+                "size": size
             };
             db.InsertObject(sql, 'documents', document, function (success) {
                 if (!success) {
                     callback(false, "Database query failed");
                     return;
                 }
-                db.MatchObject(sql, 'documents', { "name": name, "userid": userid, "size": size }, function (match, recordset) {
-                    if (!match) {
-                        callback(false, "Data not found");
+                var retries = 0;
+                function cb(match, recordset) {
+                    if (!match || recordset.length < 1) {
+                        if (retries > 5) {
+                            callback(false, "Data not found");
+                            return;
+                        }
+                        db.MatchObject(sql, 'documents', document, cb, 'id');
+                        retries++;
                         return;
                     }
                     callback(true, recordset[recordset.length - 1].id);
                     return;
-                }, 'id');
+                }
+                db.MatchObject(sql, 'documents', document, cb, 'id');
             });
         }
 
-        function getDocument(id) {
-            db.MatchObject(sql, 'documents', { "name": name, "userid": userid, "size": size }, function (match, recordset) {
+        function getDocument(object, callback) {
+            db.MatchObject(sql, 'documents', object, function (match, recordset) {
                 if (!match) {
                     callback(false, "Data not found");
                     return;
                 }
-                callback(true, recordset[recordset.length - 1]);
+                callback(true, recordset);
                 return;
             }, 'id');
+        }
+
+        function createFile(document, type, callback) {
+            var file = {
+                "document": document,
+                "type": type
+            };
+            db.InsertObject(sql, 'files', file, function (success) {
+                if (!success) {
+                    callback(false, "Database query failed");
+                    return;
+                }
+                var retries = 0;
+                function cb(match, recordset) {
+                    if (!match || recordset.length < 1) {
+                        if (retries > 5) {
+                            callback(false, "Data not found");
+                            return;
+                        }
+                        db.MatchObject(sql, 'files', file, cb, 'id');
+                        retries++;
+                    }
+                    callback(true, recordset[recordset.length - 1].id);
+                    return;
+                }
+                db.MatchObject(sql, 'files', file, cb, 'id');
+            });
         }
 
         /**
@@ -162,6 +211,7 @@ module.exports = function (debug) {
                     if (match) {
                         user = users[0];
                         delete user.password;
+                        delete user.salt;
                     }
                     callback(match, user);
                 });
@@ -184,6 +234,11 @@ module.exports = function (debug) {
             }
         };
 
+        function HashPass(password, salt) {
+            sha256.update(salt + password + salt);
+            return sha256.digest('hex');
+        }
+
         /**
          * attemps database search for given username and password
          * @returns {void}
@@ -202,13 +257,19 @@ module.exports = function (debug) {
                 callback(false, passwordi.error);
                 return;
             }
-            db.MatchObject(sql, 'users', { "username": username, "password": password }, function (loggedin, recordset) {
-                var user;
-                if (loggedin) {
-                    user = recordset[0];
-                    delete user.password;
+            db.MatchObject(sql, 'users', { "username": username }, function (match, recordset) {
+                if (match) {
+                    var user = recordset[0];
+                    var hash = HashPass(password, user.salt);
+                    if (hash === user.password) {
+                        delete user.password;
+                        delete user.salt;
+                        callback(true, user);
+                        return;
+                    }
                 }
-                callback(loggedin, user);
+                callback(false, "Username or Password incorrect");
+                return;
             });
         };
 
@@ -236,10 +297,13 @@ module.exports = function (debug) {
                 callback(false, emaili.error);
                 return;
             }
+            var salt = crypto.randomBytes(16).toString('hex');
+            var hashedpass = HashPass(password, salt);
             var user = {
                 "email": email,
                 "username": username,
-                "password": password,
+                "password": hashedpass,
+                "salt": salt,
                 "totalebestanden": 0,
                 "groottebestanden": 0,
                 "dataplan": 0
@@ -260,6 +324,7 @@ module.exports = function (debug) {
                             return;
                         }
                         delete user.password;
+                        delete user.salt;
                         callback(true, user);
                         return;
                     });
@@ -267,27 +332,59 @@ module.exports = function (debug) {
             });
         };
 
-        this.Upload = function (session, stream, callback) {
+        function rawUpload(documentid, type, stream, callback) {
+            createFile(documentid, type, function (success, id) {
+                if (!success) {
+                    callback(false, id);
+                    return;
+                }
+                blobSvc.createBlockBlobFromStream('paperless', id + ".blob", stream, stream.size, function (error) {
+                    if (error) {
+                        ErrorEvent.HError(error, 1);
+                        callback(false, 'error uploading to blob');
+                        return;
+                    }
+                    callback(true, documentid, id);
+                });
+            });
+        }
+
+        // upload types
+        var original = 1;
+        var imagepage = 2;
+
+        this.Upload = function (session, stream, userid, documentid, callback) {
+            if (callback === undefined) {
+                callback = documentid;
+                documentid = undefined;
+            }
             this.GetUserFromSession(session, function (match, user) {
                 if (!match) {
                     callback(false, 'User not logged in');
                     return;
                 }
-                createDocument(stream.filename, user.id, stream.byteCount, function (success, id) {
-                    if (!success) {
-                        callback(false, id);
-                        return;
-                    }
-                    blobSvc.createBlockBlobFromStream('paperless', id, stream, stream.byteCount, function (error) {
-                        if (error) {
-                            ErrorEvent.HError(error, 1);
-                            callback(false, 'error uploading to blob');
+                if (user.id !== userid) {
+                    callback(false, "User id's not the same");
+                    return;
+                }
+                if (documentid !== undefined) {
+                    rawUpload(documentid, original, stream, callback);
+                }
+                else {
+                    createDocument(stream.filename, user.id, stream.size, function (success, id) {
+                        if (!success) {
+                            callback(false, id);
                             return;
                         }
-                        callback(true);
+                        rawUpload(id, original, stream, callback);
                     });
-                });
+                }
             });
+        };
+
+        this.Download = function (id, callback) {
+            var stream = blobSvc.createReadStream('paperless', id + '.blob');
+            callback(stream);
         };
     };
     return this;

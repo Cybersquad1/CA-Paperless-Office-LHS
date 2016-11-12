@@ -129,18 +129,58 @@ UserHandler.Init(app, function (err) {
 
     app.post("/upload", function (req, res) {
         var form = new multiparty.Form();
-        form.on('part', function (part) {
-            if (!part.filename) return;
+        var id, file;
 
+        /*form.on('part', function (part) {
+
+            partstream = part;
+            if (!part.filename) return;
             var size = part.byteCount;
             var name = part.filename;
+            console.log(part);
             console.log("size:" + size + " Filename:" + name);
+            UserHandler.Upload(req.session, part,id, function (success, err) {
+                if (!success) {
+                    console.log(err);
+                }
+            });
 
         });
+        form.on("field", function (name, value) {
+            var id = value
+            console.log("name: " + name + ", value: " + value)
+        });   
         form.parse(req);
+        */
 
-        res.send('File uploaded successfully');
+        form.parse(req, function (error, fields, files) {
+            if (error) {
+                console.error(error.message);
+                return;
+            }
+            id = fields.id[0];
+            file = files.file[0];
+            console.log(files.file[0]);
+            var str = fs.createReadStream(file.path);
+            str.filename = file.originalFilename;
+            str.size = file.size;
+            UserHandler.Upload(req.session, str, id, function (succes, idOrError) {
+                if (succes) {
+                    res.send('File uploaded successfully');
+                    fs.unlinkSync(file.path);
+                }
+            });
+        });
 
+
+
+    });
+
+    app.get('/download', function (req, res) {
+        UserHandler.Download(5, function (stream) {
+            res.set('Content-disposition', 'attachment; filename=' + 'name.jpg');
+            stream.pipe(res);
+        });
     });
 
     PublishDir("/js");
