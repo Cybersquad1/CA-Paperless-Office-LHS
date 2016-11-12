@@ -62,15 +62,12 @@ app.controller('PaperlessController', function ($scope, $http) {
         }
         else {
             var pass = CryptoJS.SHA512(password).toString();
-
             $scope.registerData = {
                 "username": username,
                 "password": pass,
                 "email": $scope.registerEmail
             };
-
             var registerdata = JSON.stringify($scope.registerData);
-
 
             $http.post('/register', registerdata).then(function succesCallback(registerdata) {
                 console.log(registerdata);
@@ -83,6 +80,7 @@ app.controller('PaperlessController', function ($scope, $http) {
             console.log('User registered', registerdata);
         }
     };
+
     function init() {
         $http.get('/getuser').then(function (response) {
             console.log(response.data);
@@ -95,6 +93,7 @@ app.controller('PaperlessController', function ($scope, $http) {
     };
     init();
 });
+
 app.controller('UploadController', function ($scope, $http, $window) {
     $scope.logout = function () {
         $http.get('/logout').then(function (response) {
@@ -103,13 +102,8 @@ app.controller('UploadController', function ($scope, $http, $window) {
             if ($scope.loggedin == false) {
                 $window.location.href = '/index.html';
             }
-
         });
     };
-
-
-    //console.log('User registered', registerdata);
-    //};
 
     function init() {
         $http.get('/getuser').then(function (response) {
@@ -127,7 +121,6 @@ app.controller('UploadController', function ($scope, $http, $window) {
 });
 
 app.controller('FileOverview', function ($scope, $http, $window) {
-
     $scope.files = [
         { "id": "1", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "2", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
@@ -140,17 +133,8 @@ app.controller('FileOverview', function ($scope, $http, $window) {
     ];
 
     $scope.filtershow = true;
-
-    $scope.logout = function () {
-        $http.get('/logout').then(function (response) {
-            console.log(response);
-            $scope.loggedin = false;
-            if ($scope.loggedin == false) {
-                $window.location.href = '/index.html';
-            }
-
-        });
-    };
+    $scope.filterBtnText = "Hide";
+    $scope.filedivclass = "col-md-9";
 
     $scope.fileclick = function (fileID) {
         console.log(fileID);
@@ -161,24 +145,22 @@ app.controller('FileOverview', function ($scope, $http, $window) {
         if ($scope.filtershow) {
             $scope.filterBtnText = "Hide";
             $scope.filedivclass = "col-md-9";
-
-
-        } else {
+        }
+        else {
             $scope.filterBtnText = "Show";
             $scope.filedivclass = "col-md-11";
         }
-
     }
 
-    $scope.setTagColor = function (tag) {
-
-        return "{ 'color':" + tag.color + "}"
-    }
-
-    $scope.myStyle1 = "{color:'red'}";
-
-    $scope.filterBtnText = "Hide";
-    $scope.filedivclass = "col-md-9";
+    $scope.logout = function () {
+        $http.get('/logout').then(function (response) {
+            console.log(response);
+            $scope.loggedin = false;
+            if ($scope.loggedin == false) {
+                $window.location.href = '/index.html';
+            }
+        });
+    };
 
     function init() {
         $http.get('/getuser').then(function (response) {
