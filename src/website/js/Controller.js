@@ -3,52 +3,85 @@
  */
 var app = angular.module('myApp', [/*'angularFileUpload'*/]);
 app.controller('PaperlessController', function ($scope, $http) {
+    function CheckString(value, name) {
+        if (value.length < 5) {
+            return { "error": name + " has a minimum of 5 characters." };
+        }
+        if (value.length > 200) {
+            return { "error": name + " has a maximum of 200 characters." };
+        }
+        var match = value.match(/^[0-9,\+-@.A-Za-z ]+$/);
+        if (match === null || match === undefined) {
+            return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
+        }
+    }
+
     $scope.login = function () {
-        var pass = CryptoJS.SHA512($scope.loginPassword).toString();
+        var password = $scope.loginPassword;
+        var username = $scope.loginUsername;
 
-        $scope.loginData = {
-            "username": $scope.loginUsername,
-            "password": pass
+        var passcheck = CheckString(password, "Password");
+        var usercheck = CheckString(username, "Username");
+
+        var error = usercheck || passcheck;
+        if (error.error !== undefined) {
+            //todo: show error
+        }
+        else {
+            var pass = CryptoJS.SHA512(password).toString();
+
+            $scope.loginData = {
+                "username": username,
+                "password": pass
+            };
+            var logindata = JSON.stringify($scope.loginData);
+
+            $http.post('/login', logindata).then(function (logindatares) {
+                console.log(logindatares);
+                $scope.loggedin = logindatares.data.loggedin;
+                if ($scope.loggedin) {
+                    $scope.username = logindatares.data.user.username;
+                }
+                if ($scope.loggedin == true) {
+                    //Close modal
+                }
+            });
         };
-
-        var logindata = JSON.stringify($scope.loginData);
-
-        $http.post('/login', logindata).then(function (logindatares) {
-            console.log(logindatares);
-            $scope.loggedin = logindatares.data.loggedin;
-            if ($scope.loggedin) {
-                $scope.username = logindatares.data.user.username;
-            }
-            if ($scope.loggedin == true) {
-                //Close modal
-            }
-
-        });
-
-        console.log('User logged in', logindata);
     };
-
     $scope.register = function () {
-        var pass = CryptoJS.SHA512($scope.registerPassword).toString();
+        var password = $scope.registerPassword;
+        var username = $scope.registerUsername;
 
-        $scope.registerData = {
-            "username": $scope.registerUsername,
-            "password": pass,
-            "email": $scope.registerEmail
-        };
+        var passcheck = CheckString(password, "Password");
+        var usercheck = CheckString(username, "Username");
+        var emailcheck = CheckString(username, "Email");
 
-        var registerdata = JSON.stringify($scope.registerData);
+        var error = usercheck || passcheck || emailcheck;
+        if (error.error !== undefined) {
+            //todo: show error
+        }
+        else {
+            var pass = CryptoJS.SHA512(password).toString();
 
-        $http.post('/register', registerdata).then(function succesCallback(registerdata) {
-            console.log(registerdata);
-            $scope.username = registerdata.data.user.username;
-            $scope.registered = registerdata.data.registered;
-            if ($scope.registered == true) {
-                //Close modal
-            }
-        });
+            $scope.registerData = {
+                "username": username,
+                "password": pass,
+                "email": $scope.registerEmail
+            };
 
-        console.log('User registered', registerdata);
+            var registerdata = JSON.stringify($scope.registerData);
+
+
+            $http.post('/register', registerdata).then(function succesCallback(registerdata) {
+                console.log(registerdata);
+                $scope.username = registerdata.data.user.username;
+                $scope.registered = registerdata.data.registered;
+                if ($scope.registered == true) {
+                    //Close modal
+                }
+            });
+            console.log('User registered', registerdata);
+        }
     };
     function init() {
         $http.get('/getuser').then(function (response) {
@@ -96,14 +129,14 @@ app.controller('UploadController', function ($scope, $http, $window) {
 app.controller('FileOverview', function ($scope, $http, $window) {
 
     $scope.files = [
-        { "id": "1", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
-        { "id": "2", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
-        { "id": "3", "url": "#", "name": "test29", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
-        { "id": "4", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
-        { "id": "5", "url": "#", "name": "test7", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
-        { "id": "6", "url": "#", "name": "test6", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
-        { "id": "7", "url": "#", "name": "test4", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
-        { "id": "8", "url": "#", "name": "test2", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" }
+        { "id": "1", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
+        { "id": "2", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
+        { "id": "3", "url": "#", "name": "test29", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
+        { "id": "4", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
+        { "id": "5", "url": "#", "name": "test7", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
+        { "id": "6", "url": "#", "name": "test6", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
+        { "id": "7", "url": "#", "name": "test4", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
+        { "id": "8", "url": "#", "name": "test2", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" }
     ];
 
     $scope.filtershow = true;
@@ -138,11 +171,11 @@ app.controller('FileOverview', function ($scope, $http, $window) {
     }
 
     $scope.setTagColor = function (tag) {
-       
-        return "{ 'color':" + tag.color +"}"
+
+        return "{ 'color':" + tag.color + "}"
     }
 
-    $scope.myStyle1= "{color:'red'}";
+    $scope.myStyle1 = "{color:'red'}";
 
     $scope.filterBtnText = "Hide";
     $scope.filedivclass = "col-md-9";
