@@ -13,6 +13,8 @@ var MSSQLStore = require('connect-mssql')(Exsession);
 var azure = require('azure-storage');
 var azureconfig = require('./azure.json');
 var blobSvc = azure.createBlobService(azureconfig.connectionstring);
+var crypto = require('crypto');
+var sha256 = crypto.createHash('sha256');
 
 /**
  * @constructor
@@ -60,7 +62,7 @@ module.exports = function (debug) {
         function CheckUserTable() {
             db.Exists(sql,
                 'users',
-                'CREATE TABLE users([id] int IDENTITY(1,1) PRIMARY KEY, email varchar(255), username varchar(255), password varchar(255), totalebestanden int, groottebestanden int, dataplan tinyint);', undefined,
+                'CREATE TABLE users([id] int IDENTITY(1,1) PRIMARY KEY, email varchar(255), username varchar(255), password varchar(255), salt varchar(255), totalebestanden int, groottebestanden int, dataplan tinyint);', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -209,6 +211,7 @@ module.exports = function (debug) {
                     if (match) {
                         user = users[0];
                         delete user.password;
+                        delete user.salt;
                     }
                     callback(match, user);
                 });
@@ -231,6 +234,11 @@ module.exports = function (debug) {
             }
         };
 
+        function HashPass(password, salt) {
+            sha256.update(salt + password + salt);
+            return sha256.digest('hex');
+        }
+
         /**
          * attemps database search for given username and password
          * @returns {void}
@@ -249,13 +257,19 @@ module.exports = function (debug) {
                 callback(false, passwordi.error);
                 return;
             }
-            db.MatchObject(sql, 'users', { "username": username, "password": password }, function (loggedin, recordset) {
-                var user;
-                if (loggedin) {
-                    user = recordset[0];
-                    delete user.password;
+            db.MatchObject(sql, 'users', { "username": username }, function (match, recordset) {
+                if (match) {
+                    var user = recordset[0];
+                    var hash = HashPass(password, user.salt);
+                    if (hash === user.password) {
+                        delete user.password;
+                        delete user.salt;
+                        callback(true, user);
+                        return;
+                    }
                 }
-                callback(loggedin, user);
+                callback(false, "Username or Password incorrect");
+                return;
             });
         };
 
@@ -283,10 +297,13 @@ module.exports = function (debug) {
                 callback(false, emaili.error);
                 return;
             }
+            var salt = crypto.randomBytes(16).toString('hex');
+            var hashedpass = HashPass(password, salt);
             var user = {
                 "email": email,
                 "username": username,
-                "password": password,
+                "password": hashedpass,
+                "salt": salt,
                 "totalebestanden": 0,
                 "groottebestanden": 0,
                 "dataplan": 0
@@ -307,6 +324,7 @@ module.exports = function (debug) {
                             return;
                         }
                         delete user.password;
+                        delete user.salt;
                         callback(true, user);
                         return;
                     });
