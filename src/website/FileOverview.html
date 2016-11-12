@@ -30,7 +30,7 @@
 	<link href="/css/FileOverview.css" rel="stylesheet">
 </head>
 
-<body class="container">
+<body class="container container-fullwidth">
 	<div ng-app="myApp" ng-controller="FileOverview">
 		<!--Navbar-->
 		<div class="navbar-wrapper">
@@ -50,7 +50,8 @@
 						<div id="navbar" class="navbar-collapse collapse">
 							<ul class="nav navbar-nav navbar-right">
 								<li><a href="index.html">Home</a></li>
-								<li class="active"><a href="#">Main page</a></li>
+								<li><a href="main.html">Main Page</a></li>
+								<li class="active"><a href="#">Overview</a></li>
 								<li><a>Welcome, {{username}}</a></li>
 								<li><a href="#" data-toggle="modal" data-target="#uploadModal">Upload</a></li>
 								<li ng-if="loggedin"><a href="#" ng-click="logout()">Log Out</a></li>
@@ -61,8 +62,8 @@
 			</div>
 		</div>
 		<div class="container container-fullwidth">
-			<div class="filterdiv col-md-3" style="border:solid black;" ng-show="filtershow">
-				<h2>Filter:</h2><button style="position:absolute; top:0; right:0;" ng-click="filtershow = false">Hide</button>
+			<div class="filterdiv col-md-3" ng-show="filtershow">
+				<h2>Filter:</h2>
 				<label><input type="checkbox" value="">Content</label>
 				<input type="text" class="form-control" id="">
 				<label><input type="checkbox" value="">Date</label>
@@ -81,20 +82,21 @@
 				<label><input type="checkbox" value="">Name</label>
 				<input type="text" class="form-control" id="">
 				<label><input type="checkbox" value="">Tags</label>
-				<input type="text" class="form-control" id="">
+				<input style="margin-bottom:5%;" type="text" class="form-control" id="">
 			</div>
-			<div ng-hide="filtershow" class="col-md-1">
-				<button style="position:absolute; top:0; right:0;" ng-click="filtershow = true">Show Filters</button>
-			</div>
-
-			<div class="filesdiv col-md-9">
+			<!--<div class="filterbutton" ng-click="filtershow = !filtershow">Hide</span></div>-->
+			<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>
+			<div class="filesdiv " ng-class="filedivclass">
 				<div class="row">
-					<div class="filediv" style="width:150px" ng-repeat="file in files" ng-click="fileclick(file.id)">
-						<h4>{{file.id}}</h4>
+					<div class="filediv" ng-repeat="file in files" ng-click="fileclick(file.name)">
+						<h4>id:{{file.id}}</h4>
 						<img src="{{file.url}}">
 						<div>
 							<div class="tagdiv" ng-repeat="tag in file.tags">
-								<p>{{tag}}</p>
+								<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span>
+							</div>
+							<div>
+								<p style="margin-top:10px;margin-bottom:0px" align="right">{{file.date}}</p>
 							</div>
 						</div>
 					</div>
@@ -102,7 +104,7 @@
 			</div>
 		</div>
 
-		<footer class="col-sm-12" >
+		<footer class="col-sm-12">
 			<p class="pull-right"><a href="#">Back to top</a></p>
 			<p>&copy; 2016 LHS</p>
 		</footer>

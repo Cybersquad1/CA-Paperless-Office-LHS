@@ -1,16 +1,49 @@
 body { 
-    padding-top: 65px; 
+    padding-top: 65px;
 }
 
 .tagdiv{
     display:inline-block;
-    /*margin:10px;*/
+    margin-left:10px;
+    /*border-style:solid;
+    border-color: black;
+    border-width: 1px;
+    border-radius:5px; */
+}
+.tagdiv p{
+    margin:0px; 
+}
+
+.filterdiv{
+    border-style:solid;
+    border-color: black;
+    border-width: 2px;
+    border-radius:5px;  
 }
 
 .filediv{
-    margin:20px;
+    width:150px;
+    margin:10px;
     float:left; 
-    border:solid black;
+    border-style:solid;
+    border-color: black;
+    border-width: 1px; 
+    border-radius: 5px;
+}
+
+.filterbutton{
+    float: left;
+    height: 40px;    
+    padding: 1px;
+    
+    /*position:absolute; 
+    top:0; 
+    right:0;*/
+}
+
+.filterbutton span{
+    transform: rotate(90deg);
+    display: inline-block;
 }
 
 /*footer{

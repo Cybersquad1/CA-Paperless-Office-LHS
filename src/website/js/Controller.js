@@ -17,8 +17,8 @@ app.controller('PaperlessController', function ($scope, $http) {
             console.log(logindatares);
             $scope.loggedin = logindatares.data.loggedin;
             if ($scope.loggedin) {
-            $scope.username = logindatares.data.user.username;
-        }
+                $scope.username = logindatares.data.user.username;
+            }
             if ($scope.loggedin == true) {
                 //Close modal
             }
@@ -96,14 +96,14 @@ app.controller('UploadController', function ($scope, $http, $window) {
 app.controller('FileOverview', function ($scope, $http, $window) {
 
     $scope.files = [
-        {"id":"1","url":"#","name":"test","tags":["test","test2","test3"]},
-        {"id":"2","url":"#","name":"test","tags":["test","test2","test3"]},
-        {"id":"3","url":"#","name":"test","tags":["test","test2","test3"]},
-        {"id":"4","url":"#","name":"test","tags":["test","test2","test3"]},
-        {"id":"5","url":"#","name":"test","tags":["test","test2","test3"]},
-        {"id":"6","url":"#","name":"test","tags":["test","test2","test3"]},
-        {"id":"7","url":"#","name":"test","tags":["test","test2","test3"]},
-        {"id":"8","url":"#","name":"test2","tags":["test3","test5","test6"]}
+        { "id": "1", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
+        { "id": "2", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
+        { "id": "3", "url": "#", "name": "test29", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
+        { "id": "4", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
+        { "id": "5", "url": "#", "name": "test7", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
+        { "id": "6", "url": "#", "name": "test6", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
+        { "id": "7", "url": "#", "name": "test4", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" },
+        { "id": "8", "url": "#", "name": "test2", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }],"date":"26/9/2016" }
     ];
 
     $scope.filtershow = true;
@@ -119,9 +119,33 @@ app.controller('FileOverview', function ($scope, $http, $window) {
         });
     };
 
-    $scope.fileclick = function(fileID){
+    $scope.fileclick = function (fileID) {
         console.log(fileID);
     };
+
+    $scope.filtershowbtnclick = function () {
+        $scope.filtershow = !$scope.filtershow;
+        if ($scope.filtershow) {
+            $scope.filterBtnText = "Hide";
+            $scope.filedivclass = "col-md-9";
+
+
+        } else {
+            $scope.filterBtnText = "Show";
+            $scope.filedivclass = "col-md-11";
+        }
+
+    }
+
+    $scope.setTagColor = function (tag) {
+       
+        return "{ 'color':" + tag.color +"}"
+    }
+
+    $scope.myStyle1= "{color:'red'}";
+
+    $scope.filterBtnText = "Hide";
+    $scope.filedivclass = "col-md-9";
 
     function init() {
         $http.get('/getuser').then(function (response) {
@@ -135,5 +159,5 @@ app.controller('FileOverview', function ($scope, $http, $window) {
             }
         });
     }
-    init();
+    //init();
 });
