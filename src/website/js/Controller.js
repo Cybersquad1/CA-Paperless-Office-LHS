@@ -25,7 +25,7 @@ app.controller('PaperlessController', function ($scope, $http) {
         var usercheck = CheckString(username, "Username");
 
         var error = usercheck || passcheck;
-        if (error.error !== undefined) {
+        if (error !== undefined) {
             //todo: show error
         }
         else {
@@ -55,7 +55,7 @@ app.controller('PaperlessController', function ($scope, $http) {
         var emailcheck = CheckString(username, "Email");
 
         var error = usercheck || passcheck || emailcheck;
-        if (error.error !== undefined) {
+        if (error !== undefined) {
             //todo: show error
         }
         else {
