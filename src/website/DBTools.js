@@ -106,7 +106,7 @@ module.exports = function () {
         });
     };
 
-    this.MatchObject = function (sql, table, object, callback) {
+    this.MatchObject = function (sql, table, object, callback, sort) {
         var query = "SELECT * FROM " + table + " WHERE ";
         var request = new sql.Request();
         var index = 0;
@@ -117,6 +117,9 @@ module.exports = function () {
             request.input(key, object[key]);
             query += key + " = @" + key;
             index++;
+        }
+        if (sort !== undefined) {
+            query += " ORDER BY " + sort;
         }
         query += ";";
         request.query(query, function (err, recordset) {
