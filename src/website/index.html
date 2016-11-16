@@ -24,6 +24,9 @@
     <script src="/js/Controller.js"></script>
     <!-- SHA512 -->
     <script src="/js/sha512.js"></script>
+    <!--Fileupload-->
+    <script src="/js/ng-file-upload.min.js"></script>
+    <script src="/js/ng-file-upload-shim.min.js"></script> <!-- for older browsers-->
     <!-- Stylesheets -->
 	<link href="/css/carousel.css" rel="stylesheet">
     <link href="/css/default.css" rel="stylesheet">
@@ -139,6 +142,64 @@
             </div><!-- modal-content -->
         </div><!-- modal-dialog -->
     </div>
+
+    <!-- Upload modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Upload</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div id="Upload-form">
+                            <form role="form" class="form-horizontal">
+                                <div class="upload">
+                                    <h4>Queue</h4>
+                                    <table class="table">
+                                        <thead>
+                                        <tr>
+                                            <th width="50%">Name</th>
+                                            <th>Size</th>
+                                            <th>Progress</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr ng-repeat="x in files">
+                                            <td><strong>{{ x.name }}</strong></td>
+                                            <td nowrap>{{ x.size/1024/1024|number:2 }} MB</td>
+                                            <td>
+                                                <span class="progress">
+                                                    <div ng-bind="x.progress + '%'"></div>
+                                                </span>
+                                            </td>
+                                            <td nowrap>
+                                                <button type="button" class="btn btn-danger btn-xs" ng-click="x.upload.abort()">
+                                                    <span class="glyphicon glyphicon-cancel"></span> Abort
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                    <div>
+                                        <!-- Drop zone -->
+                                        <div class="well well-lg drop-box" ngf-drop="uploadFiles($files)" ngf-drag-over-class="dragover" ngf-allow-dir="true" ngf-drop-available="true"
+                                             ngf-keep="true 'distinct'">
+                                            Drag & drop your files
+                                        </div>
+                                        <div ngf-no-file-drop>File Drag/Drop is not supported for this browser</div>
+                                        <input type="file" ngf-select="uploadFiles($files, $invalidFiles)" ngf-keep="true 'distinct'" multiple>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- modal-content -->
+    </div><!-- modal-dialog -->
 
     <!-- Carousel -->
 	<div id="myCarousel" class="carousel slide" data-ride="carousel">

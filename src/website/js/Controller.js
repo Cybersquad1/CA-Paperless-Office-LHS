@@ -1,8 +1,8 @@
 /**
  * Created by Hannelore on 4/10/2016.
  */
-var app = angular.module('myApp', ['angularFileUpload']);
-app.controller('PaperlessController', function ($scope, $http) {
+var app = angular.module('myApp', ['ngFileUpload']);
+app.controller('PaperlessController', ['$scope', '$http', 'Upload', function ($scope, $http, Upload) {
 
     function CheckString(value, name) {
         if (value.length < 5) {
@@ -76,4 +76,26 @@ app.controller('PaperlessController', function ($scope, $http) {
             console.log('User registered', registerdata);
         }
     };
-});
+
+    $scope.uploadFiles = function(files, errFiles) {
+        $scope.files = files;
+        $scope.errFiles = errFiles;
+        angular.forEach(files, function(file) {
+            file.upload = Upload.upload({
+                url: '/upload',
+                data: {id: "", file: file}
+            });
+
+            file.upload.then(function (response) {
+                $timeout(function () {
+                    file.result = response.data;
+                });
+            }, function (response) {
+                if (response.status > 0)
+                    $scope.errorMsg = response.status + ': ' + response.data;
+            }, function (evt) {
+                file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+            });
+        });
+    }
+}]);
