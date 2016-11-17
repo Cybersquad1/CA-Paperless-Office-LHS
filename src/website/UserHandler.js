@@ -257,7 +257,7 @@ module.exports = function (debug) {
                 callback(false, passwordi.error);
                 return;
             }
-            db.MatchObject(sql, 'users', { "username": username }, function (match, recordset) {
+            db.MatchObject(sql, 'users', { "username": username, "email": username }, function (match, recordset) {
                 if (match) {
                     var user = recordset[0];
                     var hash = HashPass(password, user.salt);
@@ -270,7 +270,7 @@ module.exports = function (debug) {
                 }
                 callback(false, "Username or Password incorrect");
                 return;
-            });
+            }, { "operator": "OR" });
         };
 
         /**
