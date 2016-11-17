@@ -1,8 +1,8 @@
 /**
  * Created by Hannelore on 4/10/2016.
  */
-var app = angular.module('myApp', [/*'angularFileUpload'*/]);
-app.controller('PaperlessController', function ($scope, $http) {
+var app = angular.module('myApp', ['ngFileUpload']);
+app.controller('PaperlessController', ['$scope', '$http', 'Upload', function ($scope, $http, Upload) {
     function CheckString(value, name) {
         if (value.length < 5) {
             return { "error": name + " has a minimum of 5 characters." };
@@ -24,7 +24,7 @@ app.controller('PaperlessController', function ($scope, $http) {
         var usercheck = CheckString(username, "Username");
 
         var error = usercheck || passcheck;
-        if (error.error !== undefined) {
+        if (error !== undefined) {
             //todo: show error
         }
         else {
@@ -46,7 +46,7 @@ app.controller('PaperlessController', function ($scope, $http) {
                     //Close modal
                 }
             });
-        };
+        }
     };
     $scope.register = function () {
         var password = $scope.registerPassword;
@@ -57,7 +57,7 @@ app.controller('PaperlessController', function ($scope, $http) {
         var emailcheck = CheckString(username, "Email");
 
         var error = usercheck || passcheck || emailcheck;
-        if (error.error !== undefined) {
+        if (error !== undefined) {
             //todo: show error
         }
         else {
@@ -81,6 +81,28 @@ app.controller('PaperlessController', function ($scope, $http) {
         }
     };
 
+    $scope.uploadFiles = function (files, errFiles) {
+        $scope.files = files;
+        $scope.errFiles = errFiles;
+        angular.forEach(files, function (file) {
+            file.upload = Upload.upload({
+                url: '/upload',
+                data: { id: "", file: file }
+            });
+
+            file.upload.then(function (response) {
+                $timeout(function () {
+                    file.result = response.data;
+                });
+            }, function (response) {
+                if (response.status > 0)
+                    $scope.errorMsg = response.status + ': ' + response.data;
+            }, function (evt) {
+                file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+            });
+        });
+    };
+
     function init() {
         $http.get('/getuser').then(function (response) {
             console.log(response.data);
@@ -90,35 +112,9 @@ app.controller('PaperlessController', function ($scope, $http) {
                 $scope.username = response.data.user.username;
             }
         });
-    };
-    init();
-});
-
-app.controller('UploadController', function ($scope, $http, $window) {
-    $scope.logout = function () {
-        $http.get('/logout').then(function (response) {
-            console.log(response);
-            $scope.loggedin = false;
-            if ($scope.loggedin == false) {
-                $window.location.href = '/index.html';
-            }
-        });
-    };
-
-    function init() {
-        $http.get('/getuser').then(function (response) {
-            console.log(response.data);
-            $scope.loggedin = response.data.loggedin;
-            if ($scope.loggedin == false) {
-                console.log("error");
-                $window.location.href = '/index.html';
-            } else {
-                $scope.username = response.data.user.username;
-            }
-        });
     }
     init();
-});
+}]);
 
 app.controller('FileOverview', function ($scope, $http, $window) {
     $scope.files = [
@@ -150,7 +146,7 @@ app.controller('FileOverview', function ($scope, $http, $window) {
             $scope.filterBtnText = ">>";
             $scope.filedivclass = "col-md-11";
         }
-    }
+    };
 
     $scope.logout = function () {
         $http.get('/logout').then(function (response) {
