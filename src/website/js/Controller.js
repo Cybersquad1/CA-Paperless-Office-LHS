@@ -2,7 +2,8 @@
  * Created by Hannelore on 4/10/2016.
  */
 var app = angular.module('myApp', ['ngFileUpload']);
-app.controller('PaperlessController', ['$scope', '$http', 'Upload', function ($scope, $http, Upload) {
+
+app.controller('PaperlessController', function ($scope, $http, Upload, $window, $timeout) {
     function CheckString(value, name) {
         if (value.length < 5) {
             return { "error": name + " has a minimum of 5 characters." };
@@ -42,12 +43,20 @@ app.controller('PaperlessController', ['$scope', '$http', 'Upload', function ($s
                 if ($scope.loggedin) {
                     $scope.username = logindatares.data.user.username;
                 }
-                if ($scope.loggedin == true) {
-                    //Close modal
-                }
             });
         }
     };
+
+    $scope.logout = function () {
+        $http.get('/logout').then(function (response) {
+            console.log(response);
+            $scope.loggedin = response.data.loggedin;
+            if (!$scope.loggedin && $scope.file === "FileOverview") {
+                $window.location.href = '/index.html';
+            }
+        });
+    };
+
     $scope.register = function () {
         var password = $scope.registerPassword;
         var username = $scope.registerUsername;
@@ -69,13 +78,10 @@ app.controller('PaperlessController', ['$scope', '$http', 'Upload', function ($s
             };
             var registerdata = JSON.stringify($scope.registerData);
 
-            $http.post('/register', registerdata).then(function succesCallback(registerdata) {
-                console.log(registerdata);
-                $scope.username = registerdata.data.user.username;
-                $scope.registered = registerdata.data.registered;
-                if ($scope.registered == true) {
-                    //Close modal
-                }
+            $http.post('/register', registerdata).then(function (response) {
+                console.log(response);
+                $scope.username = response.data.user.username;
+                $scope.registered = response.data.registered;
             });
             console.log('User registered', registerdata);
         }
@@ -86,8 +92,8 @@ app.controller('PaperlessController', ['$scope', '$http', 'Upload', function ($s
         $scope.errFiles = errFiles;
         angular.forEach(files, function (file) {
             file.upload = Upload.upload({
-                url: '/upload',
-                data: { id: "", file: file }
+                "url": '/upload',
+                "data": { "id": "", "file": file }
             });
 
             file.upload.then(function (response) {
@@ -104,19 +110,22 @@ app.controller('PaperlessController', ['$scope', '$http', 'Upload', function ($s
     };
 
     function init() {
+        var split = $window.location.pathname.split("/");
+        split = split[split.length - 1].split(".");
+        $scope.file = split[0];
         $http.get('/getuser').then(function (response) {
             console.log(response.data);
-
             $scope.loggedin = response.data.loggedin;
-            if ($scope.loggedin) {
+            if (!$scope.loggedin && $scope.file === "FileOverview") {
+                console.log("error");
+                $window.location.href = '/index.html';
+            }
+            else if ($scope.loggedin) {
                 $scope.username = response.data.user.username;
             }
         });
     }
-    init();
-}]);
 
-app.controller('FileOverview', function ($scope, $http, $window) {
     $scope.files = [
         { "id": "1", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "2", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
@@ -147,28 +156,5 @@ app.controller('FileOverview', function ($scope, $http, $window) {
             $scope.filedivclass = "col-md-11";
         }
     };
-
-    $scope.logout = function () {
-        $http.get('/logout').then(function (response) {
-            console.log(response);
-            $scope.loggedin = false;
-            if ($scope.loggedin == false) {
-                $window.location.href = '/index.html';
-            }
-        });
-    };
-
-    function init() {
-        $http.get('/getuser').then(function (response) {
-            console.log(response.data);
-            $scope.loggedin = response.data.loggedin;
-            if ($scope.loggedin == false) {
-                console.log("error");
-                $window.location.href = '/index.html';
-            } else {
-                $scope.username = response.data.user.username;
-            }
-        });
-    }
-    //init();
+    init();
 });

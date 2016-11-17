@@ -26,12 +26,15 @@
 	<!-- SHA512 -->
 	<script src="/js/sha512.js"></script>
 	<!-- Stylesheets -->
+    <script src="/js/ng-file-upload.min.js"></script>
+    <script src="/js/ng-file-upload-shim.min.js"></script> <!-- for older browsers-->
+	<!-- Stylesheets -->
 	<link href="/css/carousel.css" rel="stylesheet">
 	<link href="/css/FileOverview.css" rel="stylesheet">
 </head>
 
 <body class="container container-fullwidth">
-	<div ng-app="myApp" ng-controller="FileOverview">
+	<div ng-app="myApp" ng-controller="PaperlessController">
 		<!--Navbar-->
 		<div class="navbar-wrapper">
 			<div class="container">
