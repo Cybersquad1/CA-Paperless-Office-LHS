@@ -126,6 +126,9 @@ UserHandler.Init(app, function (err) {
     app.get('/index.html', function (req, res) {
         res.sendFile(__dirname + "/" + "index.html");
     });
+    app.get('/FileOverview.html', function (req, res) {
+        res.sendFile(__dirname + "/" + "FileOverview.html");
+    });
 
     app.post("/upload", function (req, res) {
         var form = new multiparty.Form();
