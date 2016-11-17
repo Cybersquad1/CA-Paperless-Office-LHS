@@ -133,7 +133,7 @@ app.controller('FileOverview', function ($scope, $http, $window) {
     ];
 
     $scope.filtershow = true;
-    $scope.filterBtnText = "Hide";
+    $scope.filterBtnText = "<<";
     $scope.filedivclass = "col-md-9";
 
     $scope.fileclick = function (fileID) {
@@ -143,11 +143,11 @@ app.controller('FileOverview', function ($scope, $http, $window) {
     $scope.filtershowbtnclick = function () {
         $scope.filtershow = !$scope.filtershow;
         if ($scope.filtershow) {
-            $scope.filterBtnText = "Hide";
+            $scope.filterBtnText = "<<";
             $scope.filedivclass = "col-md-9";
         }
         else {
-            $scope.filterBtnText = "Show";
+            $scope.filterBtnText = ">>";
             $scope.filedivclass = "col-md-11";
         }
     }

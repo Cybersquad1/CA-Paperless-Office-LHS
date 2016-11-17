@@ -18,7 +18,24 @@ body {
     border-style:solid;
     border-color: black;
     border-width: 2px;
-    border-radius:5px;  
+    border-radius:5px 0px 5px 5px;  
+}
+
+.filterbutton{
+    float: left;
+    /*height: 40px;*/    
+    padding: 1px;
+
+    border-radius:0px 5px 5px 0px;  
+    background-color: black;
+    border: none;
+    color: white;
+    text-decoration: none;
+
+    
+    /*position:absolute; 
+    top:0; 
+    right:0;*/
 }
 
 .filediv{
@@ -31,20 +48,12 @@ body {
     border-radius: 5px;
 }
 
-.filterbutton{
-    float: left;
-    height: 40px;    
-    padding: 1px;
-    
-    /*position:absolute; 
-    top:0; 
-    right:0;*/
-}
 
-.filterbutton span{
+
+/*.filterbutton span{
     transform: rotate(90deg);
     display: inline-block;
-}
+}*/
 
 /*footer{
     position:absolute;
