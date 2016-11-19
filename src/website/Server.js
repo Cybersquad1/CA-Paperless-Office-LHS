@@ -163,9 +163,14 @@ UserHandler.Init(app, function (err) {
                 console.error(error.message);
                 return;
             }
-            id = fields.id[0];
+            // console.log(req.data);
+            // console.log(fields);
+            id = Number(fields.id[0]);
             file = files.file[0];
-            console.log(files.file[0]);
+            // console.log(files);
+            // console.log(typeof id);
+            // console.log(Number(id));
+            // console.log(id);
             var str = fs.createReadStream(file.path);
             str.filename = file.originalFilename;
             str.size = file.size;

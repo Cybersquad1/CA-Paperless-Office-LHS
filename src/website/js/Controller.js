@@ -41,7 +41,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                 console.log(logindatares);
                 $scope.loggedin = logindatares.data.loggedin;
                 if ($scope.loggedin) {
-                    $scope.username = logindatares.data.user.username;
+                    $scope.user = logindatares.data.user;
                 }
             });
         }
@@ -53,6 +53,9 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             $scope.loggedin = response.data.loggedin;
             if (!$scope.loggedin && $scope.file === "FileOverview") {
                 $window.location.href = '/index.html';
+            }
+            else if (!$scope.loggedin) {
+                delete $scope.user;
             }
         });
     };
@@ -80,8 +83,8 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
             $http.post('/register', registerdata).then(function (response) {
                 console.log(response);
-                $scope.username = response.data.user.username;
-                $scope.registered = response.data.registered;
+                $scope.user = response.data.user;
+                $scope.loggedin = response.data.loggedin;
             });
             console.log('User registered', registerdata);
         }
@@ -93,7 +96,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         angular.forEach(files, function (file) {
             file.upload = Upload.upload({
                 "url": '/upload',
-                "data": { "id": "", "file": file }
+                "data": { "id": $scope.user.id, "file": file }
             });
 
             file.upload.then(function (response) {
@@ -121,7 +124,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                 $window.location.href = '/index.html';
             }
             else if ($scope.loggedin) {
-                $scope.username = response.data.user.username;
+                $scope.user = response.data.user;
             }
         });
     }
