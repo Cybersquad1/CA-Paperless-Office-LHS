@@ -106,20 +106,28 @@ module.exports = function () {
         });
     };
 
-    this.MatchObject = function (sql, table, object, callback, sort) {
-        var query = "SELECT * FROM " + table + " WHERE ";
+    this.MatchObject = function (sql, table, object, callback, Options) {
+        var options = Options;
+        if (typeof options === "string") {
+            options = { "sort": options };
+        }
+        options = options || {};
+        options.select = options.select || "*";
+        options.operator = options.operator || "AND";
+
+        var query = "SELECT " + options.select + " FROM " + table + " WHERE ";
         var request = new sql.Request();
         var index = 0;
         for (var key in object) {
             if (index > 0) {
-                query += " AND ";
+                query += " " + options.operator + " ";
             }
             request.input(key, object[key]);
             query += key + " = @" + key;
             index++;
         }
-        if (sort !== undefined) {
-            query += " ORDER BY " + sort;
+        if (options.sort !== undefined) {
+            query += " ORDER BY " + options.sort;
         }
         query += ";";
         request.query(query, function (err, recordset) {

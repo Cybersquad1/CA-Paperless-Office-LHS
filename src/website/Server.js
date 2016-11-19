@@ -68,7 +68,7 @@ UserHandler.Init(app, function (err) {
 
     app.get("/logout", function (req, res) {
         UserHandler.SetSessionUser(req.session, null);
-        res.json({ "logout": "done" });
+        res.json({ "logout": "done", "loggedin": false });
     });
 
     app.post("/register", function (req, res) {
@@ -80,14 +80,16 @@ UserHandler.Init(app, function (err) {
             if (registered) {
                 response = {
                     "registered": registered,
-                    "user": errorOrUser
+                    "user": errorOrUser,
+                    "loggedin": registered
                 };
                 UserHandler.SetSessionUser(req.session, errorOrUser);
             }
             else {
                 response = {
                     "registered": registered,
-                    "error": errorOrUser
+                    "error": errorOrUser,
+                    "loggedin": registered
                 };
             }
             res.json(response);
@@ -161,9 +163,14 @@ UserHandler.Init(app, function (err) {
                 console.error(error.message);
                 return;
             }
-            id = fields.id[0];
+            // console.log(req.data);
+            // console.log(fields);
+            id = Number(fields.id[0]);
             file = files.file[0];
-            console.log(files.file[0]);
+            // console.log(files);
+            // console.log(typeof id);
+            // console.log(Number(id));
+            // console.log(id);
             var str = fs.createReadStream(file.path);
             str.filename = file.originalFilename;
             str.size = file.size;
