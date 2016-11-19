@@ -30,8 +30,8 @@
 	<script src="/js/ng-file-upload-shim.min.js"></script>
 	<!-- for older browsers-->
 	<!-- Stylesheets -->
-	<link href="/css/paymentplan.css" rel="stylesheet">
-	<link href="/css/default.css" rel="stylesheet">
+	< <link href="/css/paymentplan.css" rel="stylesheet">
+		<link href="/css/default.css" rel="stylesheet">
 </head>
 
 <body>
@@ -52,15 +52,14 @@
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav navbar-right">
 						<li class="active"><a href="index.html">Home</a></li>
-						<li ng-show="loggedin || registered"><a href="main.html">Main page</a></li>
+						<li ng-show="loggedin || registered"><a href="FileOverview.html">Overview page</a></li>
 						<li ng-hide="loggedin || registered"><a href="#" data-toggle="modal" data-target="#loginModal">Login/Register</a></li>
-						<li ng-show="loggedin || registered"><a href="#">Welcome, {{username}}</a></li>
+						<li ng-show="loggedin || registered"><a href="#">Welcome, {{user.username}}</a></li>
 						<li ng-show="loggedin || registered"><a href="#" ng-click="logout()">Log Out</a></li>
 					</ul>
 				</div>
 			</div>
 		</nav>
-
 	</div>
 
 	<div class="container">
@@ -69,7 +68,7 @@
 				<div class="thumbnail">
 					<div class="caption">
 						<h3>25MB / Month <br> 25 IMG up / Day <br> <br> FREE</h3>
-						<a ng-show="" href="" class="btn btn-default" role="button" ng-click="Buy()">Free</a>					</div>
+						<a ng-show="" href="" class="btn btn-default" role="button" ng-click="Buy()">Free</a> </div>
 				</div>
 			</div>
 			<div class="col-sm-6 col-md-3 col-centered">
@@ -98,7 +97,6 @@
 			<p>&copy; 2016 LHS</p>
 		</div>
 	</footer>
-
 </body>
 
 </html>
