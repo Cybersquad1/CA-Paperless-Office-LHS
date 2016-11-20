@@ -5,6 +5,7 @@
 body {
   padding-bottom: 20px;
   color: #5a5a5a;
+  padding-top: 65px;
 }
 
 /* CUSTOMIZE THE NAVBAR
@@ -103,6 +104,12 @@ footer {
   height: 40px;
   margin-top: 20px;
   padding-top: 10px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;    
 }
 
 /* RESPONSIVE CSS

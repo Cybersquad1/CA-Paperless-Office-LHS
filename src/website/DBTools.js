@@ -106,6 +106,45 @@ module.exports = function () {
         });
     };
 
+    this.MatchObject = function (sql, table, object, callback, Options) {
+        var options = Options;
+        if (typeof options === "string") {
+            options = { "sort": options };
+        }
+        options = options || {};
+        options.select = options.select || "*";
+        options.operator = options.operator || "AND";
+
+        var query = "SELECT " + options.select + " FROM " + table + " WHERE ";
+        var request = new sql.Request();
+        var index = 0;
+        for (var key in object) {
+            if (index > 0) {
+                query += " " + options.operator + " ";
+            }
+            request.input(key, object[key]);
+            query += key + " = @" + key;
+            index++;
+        }
+        if (options.sort !== undefined) {
+            query += " ORDER BY " + options.sort;
+        }
+        query += ";";
+        request.query(query, function (err, recordset) {
+            if (err !== undefined) {
+                ErrorEvent.HError(err, ErrorEvent.DataBaseError);
+                if (callback !== undefined) {
+                    callback(false);
+                    return;
+                }
+            }
+            else if (callback !== undefined) {
+                callback(recordset.length > 0, recordset);
+                return;
+            }
+        });
+    };
+
     this.Insert = function (sql, table, parameters, valuetypes, callback) {
         var internalparameters, internalvalues;
         internalparameters = MakeArray(parameters);
@@ -132,6 +171,43 @@ module.exports = function () {
             }
             request.input(internalparameters[index2], internalvalues[index2]);
             query += "@" + internalparameters[index2];
+        }
+        query += ");";
+        request.query(query, function (err) {
+            if (err !== undefined) {
+                ErrorEvent.HError(err, ErrorEvent.DataBaseError);
+                if (callback !== undefined) {
+                    callback(false);
+                    return;
+                }
+            }
+            else if (callback !== undefined) {
+                callback(true);
+                return;
+            }
+        });
+    };
+
+    this.InsertObject = function (sql, table, object, callback) {
+        var query = "INSERT INTO " + table + " (";
+        var index = 0;
+        for (var key in object) {
+            if (index > 0) {
+                query += ",";
+            }
+            query += key;
+            index++;
+        }
+        query += ") VALUES (";
+        var request = new sql.Request();
+        index = 0;
+        for (var key2 in object) {
+            if (index > 0) {
+                query += ",";
+            }
+            request.input(key2, object[key2]);
+            query += "@" + key2;
+            index++;
         }
         query += ");";
         request.query(query, function (err) {

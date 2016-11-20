@@ -1,0 +1,50 @@
+body { 
+    padding-top: 65px;
+}
+
+.tagdiv{
+    display:inline-block;
+    margin-left:10px;
+    /*border-style:solid;
+    border-color: black;
+    border-width: 1px;
+    border-radius:5px; */
+}
+.tagdiv p{
+    margin:0px; 
+}
+
+.filterdiv{
+    border-style:solid;
+    border-color: black;
+    border-width: 2px;
+    border-radius:5px 0px 5px 5px;  
+}
+
+.filterbutton{
+    float: left;
+    /*height: 40px;*/    
+    padding: 1px;
+
+    border-radius:0px 5px 5px 0px;  
+    background-color: black;
+    border: none;
+    color: white;
+    text-decoration: none;
+
+    
+    /*position:absolute; 
+    top:0; 
+    right:0;*/
+}
+
+.filediv{
+    width:150px;
+    margin:10px;
+    float:left; 
+    border-style:solid;
+    border-color: black;
+    border-width: 1px; 
+    border-radius: 5px;
+}
+

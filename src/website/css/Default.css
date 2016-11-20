@@ -1,0 +1,20 @@
+.modal-dialog{
+    display: table;
+}
+
+.modal .nav-tabs {
+    margin-bottom: 15px;
+}
+
+.modal .tab-pane {
+    padding: 10px 20px 10px 10px;
+}
+
+.modal .upload {
+    padding: 20px;
+}
+
+.modal .well {
+    margin-top: 10px;
+}
+
