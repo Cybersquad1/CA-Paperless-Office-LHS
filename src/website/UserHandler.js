@@ -382,9 +382,39 @@ module.exports = function (debug) {
             });
         };
 
-        this.Download = function (id, callback) {
-            var stream = blobSvc.createReadStream('paperless', id + '.blob');
-            callback(stream);
+        this.Download = function (session, userid, documentid, callback) {
+            this.GetUserFromSession(session, function (match, user) {
+                if (!match) {
+                    callback(false, 'User not logged in');
+                    return;
+                }
+                if (user.id !== userid) {
+                    callback(false, "User id's not the same");
+                    return;
+                }
+                var filter ={
+                    "userid": user.id,
+                    "documentid": documentid
+                };
+                this.getDocument(filter, function (match) {
+                    if (match){
+                        db.MatchObject(sql, 'files', { "document": documentid}, function (match) {
+                            if (match){
+                                var stream = blobSvc.createReadStream('paperless', documentid + '.blob');
+                                callback(true, stream);
+                            }
+                            else {
+                                callback(false, "No download available");
+                                return;
+                            }
+                        });
+                    }
+                    else {
+                        callback(false, "No download available");
+                        return;
+                    }
+                });
+            });
         };
 
         this.GetDocuments = function (session, userid, filter, callback) {
@@ -416,7 +446,7 @@ module.exports = function (debug) {
                 var filter ={
                     "userid": user.id,
                     "documentid": documentid
-                }
+                };
                 this.getDocument(filter, function (match) {
                     if (match){
                         db.MatchObject(sql, 'files', { "document": documentid}, callback );

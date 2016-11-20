@@ -216,11 +216,19 @@ UserHandler.Init(app, function (err) {
     });
 
     app.get('/download', function (req, res) {
-        UserHandler.Download(5, function (stream) {
-            res.set('Content-disposition', 'attachment; filename=' + 'name.jpg');
-            stream.on('open', function() {
-                stream.pipe(res);
-            })
+        UserHandler.Download(req.session, req.body.userid, req.body.documentid, function (match, stream) {
+            if(match){
+                res.set('Content-disposition', 'attachment; filename=' + 'name.jpg');
+                stream.on('open', function () {
+                    stream.pipe(res);
+                })
+            }
+            else {
+                response ={
+                    "match": match,
+                    "error": stream
+                }
+            }
         });
     });
 
