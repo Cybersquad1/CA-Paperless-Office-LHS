@@ -109,6 +109,40 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         $('#uploadwarnings').append(warning);
     }
 
+    function Uploadfile(file, callback, document) {
+        var data = {
+            "url": '/upload',
+            "data": { "id": $scope.user.id, "file": file, "document": $scope.documentname }
+        };
+        if (document) {
+            data.data.documentid = document;
+        }
+        file.upload = Upload.upload(data);
+        file.upload.then(function (response) {
+            $timeout(function () {
+                file.result = response.data;
+            });
+            var reply = response.data;
+            if (reply.success) {
+                if (callback) {
+                    callback(file, reply.document, reply.file);
+                }
+                $scope.files.splice($scope.files.indexOf(file), 1);
+                if ($scope.files === undefined || $scope.files.length === 0) {
+                    showuploadwarning("All files uploaded", "success", "Done");
+                }
+            }
+            else {
+                showuploadwarning(reply.error, "danger", "Failed");
+            }
+        }, function (response) {
+            if (response.status > 0)
+                $scope.errorMsg = response.status + ': ' + response.data;
+        }, function (evt) {
+            file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+        });
+    }
+
     $scope.uploadFiles = function () {
         // $scope.files = files;
         // $scope.errFiles = errFiles;
@@ -120,26 +154,11 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             showuploadwarning('No files selected for upload');
         }
         else {
-            angular.forEach($scope.files, function (file) {
-                file.upload = Upload.upload({
-                    "url": '/upload',
-                    "data": { "id": $scope.user.id, "file": file }
-                });
-
-                file.upload.then(function (response) {
-                    $scope.files.splice($scope.files.indexOf(file), 1);
-                    if ($scope.files === undefined || $scope.files.length === 0) {
-                        showuploadwarning("All files uploaded", "success", "Done");
-                    }
-                    $timeout(function () {
-                        file.result = response.data;
-                    });
-                }, function (response) {
-                    if (response.status > 0)
-                        $scope.errorMsg = response.status + ': ' + response.data;
-                }, function (evt) {
-                    file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                });
+            var files = $scope.files;
+            Uploadfile(files[0], function (file, documentid) {
+                for (var i = 1; i < files.length; i++) {
+                    Uploadfile(files[i], undefined, documentid);
+                }
             });
         }
     };

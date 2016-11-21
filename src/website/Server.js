@@ -175,15 +175,26 @@ UserHandler.Init(app, function (err) {
             // console.log(typeof id);
             // console.log(Number(id));
             // console.log(id);
+            var documentid;
+            if (fields.documentid !== undefined) {
+                documentid = Number(fields.documentid[0]);
+            }
+            if (fields.document === undefined) {
+                res.json({ "success": false, "error": "No name supplied" });
+            }
             var str = fs.createReadStream(file.path);
-            str.filename = file.originalFilename;
+            str.filename = fields.document[0];
             str.size = file.size;
-            console.log("uploaded: " + file.originalFilename + ":" + file.size);
-            UserHandler.Upload(req.session, str, id, function (succes, idOrError) {
-                if (succes) {
-                    res.send('File uploaded successfully');
-                    fs.unlinkSync(file.path);
+            UserHandler.Upload(req.session, str, id, documentid, function (success, idOrError, fileid) {
+                if (success) {
+                    console.log("Uploaded: " + file.originalFilename + ":" + file.size);
+                    res.json({ "success": success, "document": idOrError, "file": fileid });
                 }
+                else {
+                    console.log("Failed: " + file.originalFilename + ":" + file.size);
+                    res.json({ "success": success, "error": idOrError });
+                }
+                fs.unlinkSync(file.path);
             });
         });
 

@@ -137,27 +137,14 @@ module.exports = function (debug) {
                 "userid": userid,
                 "size": size
             };
-            db.InsertObject(sql, 'documents', document, function (success) {
-                if (!success) {
-                    callback(false, "Database query failed");
+            db.InsertObject(sql, 'documents', document, function (match, recordset) {
+                if (!match || recordset.length < 1) {
+                    callback(false, "Data not found");
                     return;
                 }
-                var retries = 0;
-                function cb(match, recordset) {
-                    if (!match || recordset.length < 1) {
-                        if (retries > 5) {
-                            callback(false, "Data not found");
-                            return;
-                        }
-                        db.MatchObject(sql, 'documents', document, cb, 'id');
-                        retries++;
-                        return;
-                    }
-                    callback(true, recordset[recordset.length - 1].id);
-                    return;
-                }
-                db.MatchObject(sql, 'documents', document, cb, 'id');
-            });
+                callback(true, recordset[recordset.length - 1].id);
+                return;
+            }, { "inserted": "id" });
         }
 
         function getDocument(object, callback) {
@@ -176,26 +163,13 @@ module.exports = function (debug) {
                 "document": document,
                 "type": type
             };
-            db.InsertObject(sql, 'files', file, function (success) {
-                if (!success) {
+            db.InsertObject(sql, 'files', file, function (success, result) {
+                if (!success || result.length < 1) {
                     callback(false, "Database query failed");
                     return;
                 }
-                var retries = 0;
-                function cb(match, recordset) {
-                    if (!match || recordset.length < 1) {
-                        if (retries > 5) {
-                            callback(false, "Data not found");
-                            return;
-                        }
-                        db.MatchObject(sql, 'files', file, cb, 'id');
-                        retries++;
-                    }
-                    callback(true, recordset[recordset.length - 1].id);
-                    return;
-                }
-                db.MatchObject(sql, 'files', file, cb, 'id');
-            });
+                callback(true, result[0].id);
+            }, { "inserted": "id" });
         }
 
         /**
@@ -206,7 +180,7 @@ module.exports = function (debug) {
          */
         this.GetUserFromSession = function (session, callback) {
             if (session.user && session.user.id && session.user.loggedin) {
-                db.Match(sql, 'users', 'id', session.user.id, function (match, users) {
+                db.MatchObject(sql, 'users', { 'id': session.user.id }, function (match, users) {
                     var user;
                     if (match) {
                         user = users[0];
