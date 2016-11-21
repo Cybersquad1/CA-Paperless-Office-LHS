@@ -130,33 +130,35 @@
 
 		<!--</div>-->
 		<div class="container">
-			<div class="filterdiv col-md-3" ng-show="filtershow">
-				<h2>Filter:</h2>
-				<label><input type="checkbox" value="">Content</label>
-				<input type="text" class="form-control" id="">
-				<label><input type="checkbox" value="">Date</label>
-				<div class="form-group row">
-					<label class="col-xs-2">From:</label>
-					<div class="col-xs-10">
-						<input type="text" class="form-control" id="">
+			<div class="col-md-3">
+				<div class="filterdiv col-md-11 col-xs-11" ng-show="filtershow">
+					<h2>Filter:</h2>
+					<label><input type="checkbox" value="">Content</label>
+					<input type="text" class="form-control" id="">
+					<label><input type="checkbox" value="">Date</label>
+					<div class="form-group row">
+						<label class="col-xs-2">From:</label>
+						<div class="col-xs-10">
+							<input type="text" class="form-control" id="">
+						</div>
 					</div>
-				</div>
-				<div class="form-group row">
-					<label class="col-xs-2">To:</label>
-					<div class="col-xs-10">
-						<input type="text" class="form-control" id="">
+					<div class="form-group row">
+						<label class="col-xs-2">To:</label>
+						<div class="col-xs-10">
+							<input type="text" class="form-control" id="">
+						</div>
 					</div>
+					<label><input type="checkbox" value="">Name</label>
+					<input type="text" class="form-control" id="">
+					<label><input type="checkbox" value="">Tags</label>
+					<input style="margin-bottom:5%;" type="text" class="form-control" id="">
 				</div>
-				<label><input type="checkbox" value="">Name</label>
-				<input type="text" class="form-control" id="">
-				<label><input type="checkbox" value="">Tags</label>
-				<input style="margin-bottom:5%;" type="text" class="form-control" id="">
+				<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>
+			
 			</div>
-			<!--<div class="filterbutton" ng-click="filtershow = !filtershow">Hide</span></div>-->
-			<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>
 			<div class="filesdiv " ng-class="filedivclass">
-				<div class="row">
-					<div class="filediv" ng-repeat="file in userfiles" ng-click="fileclick(file.name)">
+				<div class="row row-centered">
+					<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file.name)">
 						<h4>id:{{file.id}}</h4>
 						<img src="{{file.url}}">
 						<div>
