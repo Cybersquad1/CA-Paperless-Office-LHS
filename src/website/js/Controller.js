@@ -5,7 +5,7 @@ var app = angular.module('myApp', ['ngFileUpload']);
 
 app.controller('PaperlessController', function ($scope, $http, Upload, $window, $timeout) {
     function CheckString(value, name) {
-        if (value.length < 5) {
+        if (value === undefined || value.length < 5) {
             return { "error": name + " has a minimum of 5 characters." };
         }
         if (value.length > 200) {
@@ -90,26 +90,58 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     };
 
-    $scope.uploadFiles = function (files, errFiles) {
+    $scope.addFile = function (files) {
+        // console.log(file);
         $scope.files = files;
-        $scope.errFiles = errFiles;
-        angular.forEach(files, function (file) {
-            file.upload = Upload.upload({
-                "url": '/upload',
-                "data": { "id": $scope.user.id, "file": file }
-            });
+        if ($scope.documentname === undefined || $scope.documentname.length === 0) {
+            $scope.documentname = $scope.files[0].name;
+        }
+    };
 
-            file.upload.then(function (response) {
-                $timeout(function () {
-                    file.result = response.data;
+    function showuploadwarning(warn, style, strong) {
+        $('#uploadwarnings').children().remove();
+        style = style || 'danger';
+        strong = strong || 'Warning';
+        var warning = '<div class="alert alert-' + style + ' alert-dismissible" role="alert">\
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
+								<strong>' + strong + '!</strong> ' + warn + '.\
+						   </div>';
+        $('#uploadwarnings').append(warning);
+    }
+
+    $scope.uploadFiles = function () {
+        // $scope.files = files;
+        // $scope.errFiles = errFiles;
+        var namecheck = CheckString($scope.documentname, "Name");
+        if (namecheck !== undefined) {
+            showuploadwarning(namecheck.error);
+        }
+        else if ($scope.files === undefined || $scope.files.length < 1) {
+            showuploadwarning('No files selected for upload');
+        }
+        else {
+            angular.forEach($scope.files, function (file) {
+                file.upload = Upload.upload({
+                    "url": '/upload',
+                    "data": { "id": $scope.user.id, "file": file }
                 });
-            }, function (response) {
-                if (response.status > 0)
-                    $scope.errorMsg = response.status + ': ' + response.data;
-            }, function (evt) {
-                file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+
+                file.upload.then(function (response) {
+                    $scope.files.splice($scope.files.indexOf(file), 1);
+                    if ($scope.files === undefined || $scope.files.length === 0) {
+                        showuploadwarning("All files uploaded", "success", "Done");
+                    }
+                    $timeout(function () {
+                        file.result = response.data;
+                    });
+                }, function (response) {
+                    if (response.status > 0)
+                        $scope.errorMsg = response.status + ': ' + response.data;
+                }, function (evt) {
+                    file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                });
             });
-        });
+        }
     };
 
     function init() {
