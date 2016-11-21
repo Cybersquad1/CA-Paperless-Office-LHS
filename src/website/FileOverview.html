@@ -69,12 +69,16 @@
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 						<h4 class="modal-title">Upload</h4>
 					</div>
-					<div class="modal-body">
+					<div class="modal-body" style="padding: 3em;">
 						<div class="row">
 							<div id="Upload-form">
-								<form role="form" class="form-horizontal">
+								<form role="form" class="form-horizontal form-group">
+									<div class="">
+										<h4>Name:</h4>
+										<input type="text" class="form-control" ng-model="documentname" placeholder="name">
+									</div>
 									<div class="upload">
-										<h4>Queue</h4>
+										<h4>Files:</h4>
 										<table class="table">
 											<thead>
 												<tr>
@@ -103,14 +107,17 @@
 										</table>
 										<div>
 											<!-- Drop zone -->
-											<div class="well well-lg drop-box" ngf-drop="uploadFiles($files)" ngf-drag-over-class="dragover" ngf-allow-dir="true" ngf-drop-available="true"
-												ngf-keep="true 'distinct'">
+											<div class="well well-lg drop-box" ngf-drop="addFile($files)" ngf-multiple="true" ngf-drag-over-class="dragover" ngf-allow-dir="true"
+												ngf-drop-available="true" ngf-keep="true 'distinct'">
 												Drag & drop your files
 											</div>
 											<div ngf-no-file-drop>File Drag/Drop is not supported for this browser</div>
-											<input type="file" ngf-select="uploadFiles($files, $invalidFiles)" ngf-keep="true 'distinct'" multiple>
+											<input type="file" ngf-select="addFile($files)" ngf-keep="true 'distinct'" multiple>
 										</div>
 									</div>
+									<br/>
+									<div id="uploadwarnings"></div>
+									<button class="btn btn-success" type="button" ng-click="uploadFiles()">Upload</button>
 								</form>
 							</div>
 						</div>
