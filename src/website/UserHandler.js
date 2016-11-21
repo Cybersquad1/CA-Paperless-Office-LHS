@@ -382,7 +382,7 @@ module.exports = function (debug) {
             });
         };
 
-        this.Download = function (session, userid, documentid, callback) {
+        this.Download = function (session, userid, fileid, callback) {
             this.GetUserFromSession(session, function (match, user) {
                 if (!match) {
                     callback(false, 'User not logged in');
@@ -392,22 +392,19 @@ module.exports = function (debug) {
                     callback(false, "User id's not the same");
                     return;
                 }
-                var filter ={
-                    "userid": user.id,
-                    "documentid": documentid
-                };
-                this.getDocument(filter, function (match) {
+                db.MatchObject(sql, 'files', {"id": fileid}, function(match, recordset){
                     if (match){
-                        db.MatchObject(sql, 'files', { "document": documentid}, function (match) {
+                        var documentid = recordset[0].document;
+                        this.getDocument({"document": documentid, "userid": user.id}, function (match){
                             if (match){
-                                var stream = blobSvc.createReadStream('paperless', documentid + '.blob');
+                                var stream = blobSvc.CreateReadStream('paperless', fileid + '.blob');
                                 callback(true, stream);
                             }
                             else {
                                 callback(false, "No download available");
                                 return;
                             }
-                        });
+                        })
                     }
                     else {
                         callback(false, "No download available");

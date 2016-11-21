@@ -219,9 +219,7 @@ UserHandler.Init(app, function (err) {
         UserHandler.Download(req.session, req.body.userid, req.body.documentid, function (match, stream) {
             if(match){
                 res.set('Content-disposition', 'attachment; filename=' + 'name.jpg');
-                stream.on('open', function () {
-                    stream.pipe(res);
-                })
+                stream.pipe(res);
             }
             else {
                 response ={
