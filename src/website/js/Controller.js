@@ -191,6 +191,12 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         { "id": "8", "url": "#", "name": "test2", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" }
     ];
 
+    $scope.detailfile = {
+        "id": "1", "url": "#", "name": "test", "tags": [
+            { "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }
+        ], "date": "26/9/2016"
+    };
+
     $scope.filtershow = true;
     $scope.filterBtnText = "<<";
     $scope.filedivclass = "col-md-9";
