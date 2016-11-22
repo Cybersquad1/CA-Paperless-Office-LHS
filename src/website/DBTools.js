@@ -59,7 +59,7 @@ module.exports = function () {
         });
     };
 
-    function MakeArray(value) {
+    /*function MakeArray(value) {
         var internal;
         if (value instanceof Array) {
             internal = value;
@@ -68,9 +68,9 @@ module.exports = function () {
             internal = [value];
         }
         return internal;
-    }
+    }*/
 
-    this.Match = function (sql, table, parameters, values, callback) {
+    /*this.Match = function (sql, table, parameters, values, callback) {
         var internalparameters, internalvalues;
         internalparameters = MakeArray(parameters);
         internalvalues = MakeArray(values);
@@ -104,22 +104,30 @@ module.exports = function () {
                 return;
             }
         });
-    };
+    };*/
 
-    this.MatchObject = function (sql, table, object, callback, sort) {
-        var query = "SELECT * FROM " + table + " WHERE ";
+    this.MatchObject = function (sql, table, object, callback, Options) {
+        var options = Options;
+        if (typeof options === "string") {
+            options = { "sort": options };
+        }
+        options = options || {};
+        options.select = options.select || "*";
+        options.operator = options.operator || "AND";
+
+        var query = "SELECT " + options.select + " FROM " + table + " WHERE ";
         var request = new sql.Request();
         var index = 0;
         for (var key in object) {
             if (index > 0) {
-                query += " AND ";
+                query += " " + options.operator + " ";
             }
             request.input(key, object[key]);
             query += key + " = @" + key;
             index++;
         }
-        if (sort !== undefined) {
-            query += " ORDER BY " + sort;
+        if (options.sort !== undefined) {
+            query += " ORDER BY " + options.sort;
         }
         query += ";";
         request.query(query, function (err, recordset) {
@@ -137,7 +145,7 @@ module.exports = function () {
         });
     };
 
-    this.Insert = function (sql, table, parameters, valuetypes, callback) {
+    /*this.Insert = function (sql, table, parameters, valuetypes, callback) {
         var internalparameters, internalvalues;
         internalparameters = MakeArray(parameters);
         internalvalues = MakeArray(valuetypes);
@@ -178,9 +186,10 @@ module.exports = function () {
                 return;
             }
         });
-    };
+    };*/
 
-    this.InsertObject = function (sql, table, object, callback) {
+    this.InsertObject = function (sql, table, object, callback, Options) {
+        var options = Options || {};
         var query = "INSERT INTO " + table + " (";
         var index = 0;
         for (var key in object) {
@@ -190,7 +199,21 @@ module.exports = function () {
             query += key;
             index++;
         }
-        query += ") VALUES (";
+        query += ") ";
+        if (options.inserted || options.output) {
+            query += "OUTPUT ";
+            if (options.inserted) {
+                query += "INSERTED." + options.inserted;
+                if (options.output) {
+                    query += ", ";
+                }
+            }
+            if (options.output) {
+                query += options.output;
+            }
+            query += " ";
+        }
+        query += "VALUES (";
         var request = new sql.Request();
         index = 0;
         for (var key2 in object) {
@@ -202,7 +225,7 @@ module.exports = function () {
             index++;
         }
         query += ");";
-        request.query(query, function (err) {
+        request.query(query, function (err, recordset) {
             if (err !== undefined) {
                 ErrorEvent.HError(err, ErrorEvent.DataBaseError);
                 if (callback !== undefined) {
@@ -211,7 +234,7 @@ module.exports = function () {
                 }
             }
             else if (callback !== undefined) {
-                callback(true);
+                callback(true, recordset);
                 return;
             }
         });

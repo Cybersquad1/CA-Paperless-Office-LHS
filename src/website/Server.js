@@ -68,7 +68,7 @@ UserHandler.Init(app, function (err) {
 
     app.get("/logout", function (req, res) {
         UserHandler.SetSessionUser(req.session, null);
-        res.json({ "logout": "done" });
+        res.json({ "logout": "done", "loggedin": false });
     });
 
     app.post("/register", function (req, res) {
@@ -80,14 +80,16 @@ UserHandler.Init(app, function (err) {
             if (registered) {
                 response = {
                     "registered": registered,
-                    "user": errorOrUser
+                    "user": errorOrUser,
+                    "loggedin": registered
                 };
                 UserHandler.SetSessionUser(req.session, errorOrUser);
             }
             else {
                 response = {
                     "registered": registered,
-                    "error": errorOrUser
+                    "error": errorOrUser,
+                    "loggedin": registered
                 };
             }
             res.json(response);
@@ -129,6 +131,10 @@ UserHandler.Init(app, function (err) {
     app.get('/FileOverview.html', function (req, res) {
         res.sendFile(__dirname + "/" + "FileOverview.html");
     });
+    app.get('/paymentplan.html', function (req, res) {
+        res.sendFile(__dirname + "/" + "paymentplan.html");
+    });
+
 
     app.post("/upload", function (req, res) {
         var form = new multiparty.Form();
@@ -161,17 +167,34 @@ UserHandler.Init(app, function (err) {
                 console.error(error.message);
                 return;
             }
-            id = fields.id[0];
+            // console.log(req.data);
+            // console.log(fields);
+            id = Number(fields.id[0]);
             file = files.file[0];
-            console.log(files.file[0]);
+            // console.log(files);
+            // console.log(typeof id);
+            // console.log(Number(id));
+            // console.log(id);
+            var documentid;
+            if (fields.documentid !== undefined) {
+                documentid = Number(fields.documentid[0]);
+            }
+            if (fields.document === undefined) {
+                res.json({ "success": false, "error": "No name supplied" });
+            }
             var str = fs.createReadStream(file.path);
-            str.filename = file.originalFilename;
+            str.filename = fields.document[0];
             str.size = file.size;
-            UserHandler.Upload(req.session, str, id, function (succes, idOrError) {
-                if (succes) {
-                    res.send('File uploaded successfully');
-                    fs.unlinkSync(file.path);
+            UserHandler.Upload(req.session, str, id, documentid, function (success, idOrError, fileid) {
+                if (success) {
+                    console.log("Uploaded: " + file.originalFilename + ":" + file.size);
+                    res.json({ "success": success, "document": idOrError, "file": fileid });
                 }
+                else {
+                    console.log("Failed: " + file.originalFilename + ":" + file.size);
+                    res.json({ "success": success, "error": idOrError });
+                }
+                fs.unlinkSync(file.path);
             });
         });
 

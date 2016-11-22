@@ -2,9 +2,10 @@
  * Created by Hannelore on 4/10/2016.
  */
 var app = angular.module('myApp', ['ngFileUpload']);
-app.controller('PaperlessController', ['$scope', '$http', 'Upload', function ($scope, $http, Upload) {
+
+app.controller('PaperlessController', function ($scope, $http, Upload, $window, $timeout) {
     function CheckString(value, name) {
-        if (value.length < 5) {
+        if (value === undefined || value.length < 5) {
             return { "error": name + " has a minimum of 5 characters." };
         }
         if (value.length > 200) {
@@ -40,14 +41,25 @@ app.controller('PaperlessController', ['$scope', '$http', 'Upload', function ($s
                 console.log(logindatares);
                 $scope.loggedin = logindatares.data.loggedin;
                 if ($scope.loggedin) {
-                    $scope.username = logindatares.data.user.username;
-                }
-                if ($scope.loggedin == true) {
-                    //Close modal
+                    $scope.user = logindatares.data.user;
                 }
             });
         }
     };
+
+    $scope.logout = function () {
+        $http.get('/logout').then(function (response) {
+            console.log(response);
+            $scope.loggedin = response.data.loggedin;
+            if (!$scope.loggedin && $scope.file === "FileOverview") {
+                $window.location.href = '/index.html';
+            }
+            else if (!$scope.loggedin) {
+                delete $scope.user;
+            }
+        });
+    };
+
     $scope.register = function () {
         var password = $scope.registerPassword;
         var username = $scope.registerUsername;
@@ -69,55 +81,106 @@ app.controller('PaperlessController', ['$scope', '$http', 'Upload', function ($s
             };
             var registerdata = JSON.stringify($scope.registerData);
 
-            $http.post('/register', registerdata).then(function succesCallback(registerdata) {
-                console.log(registerdata);
-                $scope.username = registerdata.data.user.username;
-                $scope.registered = registerdata.data.registered;
-                if ($scope.registered == true) {
-                    //Close modal
-                }
+            $http.post('/register', registerdata).then(function (response) {
+                console.log(response);
+                $scope.user = response.data.user;
+                $scope.loggedin = response.data.loggedin;
             });
             console.log('User registered', registerdata);
         }
     };
 
-    $scope.uploadFiles = function (files, errFiles) {
+    $scope.addFile = function (files) {
+        // console.log(file);
         $scope.files = files;
-        $scope.errFiles = errFiles;
-        angular.forEach(files, function (file) {
-            file.upload = Upload.upload({
-                url: '/upload',
-                data: { id: "", file: file }
-            });
+        if ($scope.documentname === undefined || $scope.documentname.length === 0) {
+            $scope.documentname = $scope.files[0].name;
+        }
+    };
 
-            file.upload.then(function (response) {
-                $timeout(function () {
-                    file.result = response.data;
-                });
-            }, function (response) {
-                if (response.status > 0)
-                    $scope.errorMsg = response.status + ': ' + response.data;
-            }, function (evt) {
-                file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+    function showuploadwarning(warn, style, strong) {
+        $('#uploadwarnings').children().remove();
+        style = style || 'danger';
+        strong = strong || 'Warning';
+        var warning = '<div class="alert alert-' + style + ' alert-dismissible" role="alert">\
+								<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
+								<strong>' + strong + '!</strong> ' + warn + '.\
+						   </div>';
+        $('#uploadwarnings').append(warning);
+    }
+
+    function Uploadfile(file, callback, document) {
+        var data = {
+            "url": '/upload',
+            "data": { "id": $scope.user.id, "file": file, "document": $scope.documentname }
+        };
+        if (document) {
+            data.data.documentid = document;
+        }
+        file.upload = Upload.upload(data);
+        file.upload.then(function (response) {
+            $timeout(function () {
+                file.result = response.data;
             });
+            var reply = response.data;
+            if (reply.success) {
+                if (callback) {
+                    callback(file, reply.document, reply.file);
+                }
+                $scope.files.splice($scope.files.indexOf(file), 1);
+                if ($scope.files === undefined || $scope.files.length === 0) {
+                    showuploadwarning("All files uploaded", "success", "Done");
+                }
+            }
+            else {
+                showuploadwarning(reply.error, "danger", "Failed");
+            }
+        }, function (response) {
+            if (response.status > 0)
+                $scope.errorMsg = response.status + ': ' + response.data;
+        }, function (evt) {
+            file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
         });
+    }
+
+    $scope.uploadFiles = function () {
+        // $scope.files = files;
+        // $scope.errFiles = errFiles;
+        var namecheck = CheckString($scope.documentname, "Name");
+        if (namecheck !== undefined) {
+            showuploadwarning(namecheck.error);
+        }
+        else if ($scope.files === undefined || $scope.files.length < 1) {
+            showuploadwarning('No files selected for upload');
+        }
+        else {
+            var files = $scope.files;
+            Uploadfile(files[0], function (file, documentid) {
+                for (var i = 1; i < files.length; i++) {
+                    Uploadfile(files[i], undefined, documentid);
+                }
+            });
+        }
     };
 
     function init() {
+        var split = $window.location.pathname.split("/");
+        split = split[split.length - 1].split(".");
+        $scope.file = split[0];
         $http.get('/getuser').then(function (response) {
             console.log(response.data);
-
             $scope.loggedin = response.data.loggedin;
-            if ($scope.loggedin) {
-                $scope.username = response.data.user.username;
+            if (!$scope.loggedin && $scope.file === "FileOverview") {
+                console.log("error");
+                $window.location.href = '/index.html';
+            }
+            else if ($scope.loggedin) {
+                $scope.user = response.data.user;
             }
         });
     }
-    init();
-}]);
 
-app.controller('FileOverview', function ($scope, $http, $window) {
-    $scope.files = [
+    $scope.userfiles = [
         { "id": "1", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "2", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "3", "url": "#", "name": "test29", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
@@ -147,28 +210,5 @@ app.controller('FileOverview', function ($scope, $http, $window) {
             $scope.filedivclass = "col-md-11";
         }
     };
-
-    $scope.logout = function () {
-        $http.get('/logout').then(function (response) {
-            console.log(response);
-            $scope.loggedin = false;
-            if ($scope.loggedin == false) {
-                $window.location.href = '/index.html';
-            }
-        });
-    };
-
-    function init() {
-        $http.get('/getuser').then(function (response) {
-            console.log(response.data);
-            $scope.loggedin = response.data.loggedin;
-            if ($scope.loggedin == false) {
-                console.log("error");
-                $window.location.href = '/index.html';
-            } else {
-                $scope.username = response.data.user.username;
-            }
-        });
-    }
-    //init();
+    init();
 });

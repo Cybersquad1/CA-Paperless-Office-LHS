@@ -21,9 +21,7 @@ body {
     border-radius:5px 0px 5px 5px;  
 }
 
-.filterbutton{
-    float: left;
-    /*height: 40px;*/    
+.filterbutton{    
     padding: 1px;
 
     border-radius:0px 5px 5px 0px;  
@@ -31,11 +29,6 @@ body {
     border: none;
     color: white;
     text-decoration: none;
-
-    
-    /*position:absolute; 
-    top:0; 
-    right:0;*/
 }
 
 .filediv{
@@ -48,15 +41,19 @@ body {
     border-radius: 5px;
 }
 
+.col-centered {
+    display:inline-block;
+    float:none;
+    /* reset the text-align */
+    text-align:left;
+    /* inline-block space fix */
+    margin-right:-4px;
+}
 
+.filesdiv{
+    margin-bottom: 40px;
+}
 
-/*.filterbutton span{
-    transform: rotate(90deg);
-    display: inline-block;
-}*/
-
-/*footer{
-    position:absolute;
-    bottom:0;
-    left:0;
-}*/
+.row-centered {
+    text-align:center;
+}

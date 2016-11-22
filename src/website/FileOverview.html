@@ -26,69 +26,139 @@
 	<!-- SHA512 -->
 	<script src="/js/sha512.js"></script>
 	<!-- Stylesheets -->
+	<script src="/js/ng-file-upload.min.js"></script>
+	<script src="/js/ng-file-upload-shim.min.js"></script>
+	<!-- for older browsers-->
+	<!-- Stylesheets -->
 	<link href="/css/carousel.css" rel="stylesheet">
 	<link href="/css/FileOverview.css" rel="stylesheet">
 </head>
 
-<body class="container container-fullwidth">
-	<div ng-app="myApp" ng-controller="FileOverview">
+<body>
+	<div ng-app="myApp" ng-controller="PaperlessController">
 		<!--Navbar-->
-		<div class="navbar-wrapper">
+		<!--<div class="navbar-wrapper">-->
+		<nav class="navbar navbar-inverse navbar-fixed-top">
 			<div class="container">
-				<nav class="navbar navbar-inverse navbar-static-top">
-					<div class="container">
-						<div class="navbar-header">
-							<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false"
-								aria-controls="navbar">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false"
+						aria-controls="navbar">
                             <span class="sr-only">Toggle navigation</span>
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </button>
-							<a class="navbar-brand" href="#">Paperless Office</a>
-						</div>
-						<div id="navbar" class="navbar-collapse collapse">
-							<ul class="nav navbar-nav navbar-right">
-								<li><a href="index.html">Home</a></li>
-								<li><a href="main.html">Main Page</a></li>
-								<li class="active"><a href="#">Overview</a></li>
-								<li><a>Welcome, {{username}}</a></li>
-								<li><a href="#" data-toggle="modal" data-target="#uploadModal">Upload</a></li>
-								<li ng-if="loggedin"><a href="#" ng-click="logout()">Log Out</a></li>
-							</ul>
+					<a class="navbar-brand" href="#">Paperless Office</a>
+				</div>
+				<div id="navbar" class="navbar-collapse collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="index.html">Home</a></li>
+						<li class="active"><a href="#">Overview page</a></li>
+						<li><a>Welcome, {{user.username}}</a></li>
+						<li><a href="#" data-toggle="modal" data-target="#uploadModal">Upload</a></li>
+						<li ng-if="loggedin"><a href="#" ng-click="logout()">Log Out</a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+		<!-- Upload modal -->
+		<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">Upload</h4>
+					</div>
+					<div class="modal-body" style="padding: 3em;">
+						<div class="row">
+							<div id="Upload-form">
+								<form role="form" class="form-horizontal form-group">
+									<div class="">
+										<h4>Name:</h4>
+										<input type="text" class="form-control" ng-model="documentname" placeholder="name">
+									</div>
+									<div class="upload">
+										<h4>Files:</h4>
+										<table class="table">
+											<thead>
+												<tr>
+													<th width="50%">Name</th>
+													<th>Size</th>
+													<th>Progress</th>
+													<th>Actions</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr ng-repeat="x in files">
+													<td><strong>{{ x.name }}</strong></td>
+													<td nowrap>{{ x.size/1024/1024|number:2 }} MB</td>
+													<td>
+														<span class="progress">
+                                                    <div ng-bind="x.progress + '%'"></div>
+                                                </span>
+													</td>
+													<td nowrap>
+														<button type="button" class="btn btn-danger btn-xs" ng-click="x.upload.abort()">
+                                                    <span class="glyphicon glyphicon-cancel"></span> Abort
+                                                </button>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+										<div>
+											<!-- Drop zone -->
+											<div class="well well-lg drop-box" ngf-drop="addFile($files)" ngf-multiple="true" ngf-drag-over-class="dragover" ngf-allow-dir="true"
+												ngf-drop-available="true" ngf-keep="true 'distinct'">
+												Drag & drop your files
+											</div>
+											<div ngf-no-file-drop>File Drag/Drop is not supported for this browser</div>
+											<input type="file" ngf-select="addFile($files)" ngf-keep="true 'distinct'" multiple>
+										</div>
+									</div>
+									<br/>
+									<div id="uploadwarnings"></div>
+									<button class="btn btn-success" type="button" ng-click="uploadFiles()">Upload</button>
+								</form>
+							</div>
 						</div>
 					</div>
-				</nav>
+				</div>
 			</div>
+			<!-- modal-content -->
 		</div>
-		<div class="container container-fullwidth">
-			<div class="filterdiv col-md-3" ng-show="filtershow">
-				<h2>Filter:</h2>
-				<label><input type="checkbox" value="">Content</label>
-				<input type="text" class="form-control" id="">
-				<label><input type="checkbox" value="">Date</label>
-				<div class="form-group row">
-					<label class="col-xs-2">From:</label>
-					<div class="col-xs-10">
-						<input type="text" class="form-control" id="">
+		<!-- modal-dialog -->
+
+		<!--</div>-->
+		<div class="container">
+			<div class="col-md-3">
+				<div class="filterdiv col-md-11 col-xs-11" ng-show="filtershow">
+					<h2>Filter:</h2>
+					<label><input type="checkbox" value="">Content</label>
+					<input type="text" class="form-control" id="">
+					<label><input type="checkbox" value="">Date</label>
+					<div class="form-group row">
+						<label class="col-xs-2">From:</label>
+						<div class="col-xs-10">
+							<input type="text" class="form-control" id="">
+						</div>
 					</div>
-				</div>
-				<div class="form-group row">
-					<label class="col-xs-2">To:</label>
-					<div class="col-xs-10">
-						<input type="text" class="form-control" id="">
+					<div class="form-group row">
+						<label class="col-xs-2">To:</label>
+						<div class="col-xs-10">
+							<input type="text" class="form-control" id="">
+						</div>
 					</div>
+					<label><input type="checkbox" value="">Name</label>
+					<input type="text" class="form-control" id="">
+					<label><input type="checkbox" value="">Tags</label>
+					<input style="margin-bottom:5%;" type="text" class="form-control" id="">
 				</div>
-				<label><input type="checkbox" value="">Name</label>
-				<input type="text" class="form-control" id="">
-				<label><input type="checkbox" value="">Tags</label>
-				<input style="margin-bottom:5%;" type="text" class="form-control" id="">
+				<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>
+			
 			</div>
-			<!--<div class="filterbutton" ng-click="filtershow = !filtershow">Hide</span></div>-->
-			<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>
 			<div class="filesdiv " ng-class="filedivclass">
-				<div class="row">
-					<div class="filediv" ng-repeat="file in files" ng-click="fileclick(file.name)">
+				<div class="row row-centered">
+					<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file.name)">
 						<h4>id:{{file.id}}</h4>
 						<img src="{{file.url}}">
 						<div>
@@ -104,9 +174,11 @@
 			</div>
 		</div>
 
-		<footer class="col-sm-12">
-			<p class="pull-right"><a href="#">Back to top</a></p>
-			<p>&copy; 2016 LHS</p>
+		<footer class="col-sm-12 footer">
+			<div class="container">
+				<p class="pull-right"><a href="#">Back to top</a></p>
+				<p>&copy; 2016 LHS</p>
+			</div>
 		</footer>
 	</div>
 </body>
