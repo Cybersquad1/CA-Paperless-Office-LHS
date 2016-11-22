@@ -185,6 +185,7 @@ UserHandler.Init(app, function (err) {
             var str = fs.createReadStream(file.path);
             str.filename = fields.document[0];
             str.size = file.size;
+            str.originalFilename = file.originalFilename;
             UserHandler.Upload(req.session, str, id, documentid, function (success, idOrError, fileid) {
                 if (success) {
                     console.log("Uploaded: " + file.originalFilename + ":" + file.size);
