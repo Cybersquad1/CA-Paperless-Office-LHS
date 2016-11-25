@@ -17,6 +17,16 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     }
 
+    function CheckTag(value) {
+        if (value === undefined) {
+            return { "error": "tag" + " cannot be undefined" }
+        }
+        var match = value.match(/^[0-9,\+-@.A-Za-z ]+$/);
+        if (match === null || match === undefined) {
+            return { "error": "tag" + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
+        }
+    }
+
     $scope.login = function () {
         var password = $scope.loginPassword;
         var username = $scope.loginUsername;
@@ -181,7 +191,11 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     }
 
     $scope.userfiles = [
-        { "id": "1", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
+        {
+            "id": "1", "url": "https://cdn.freefaxcoversheets.net/samples/basic.jpg", "name": "test"
+            , "tags": [{ "name": "test", "color": "lightblue" }, { "name": "test2", "color": "Cyan" }, { "name": "test3", "color": "DodgerBlue" }, { "name": "test4", "color": "DeepSkyBlue" }, { "name": "test5", "color": "DarkTurquoise" }]
+            , "manualtags": [{ "name": "manualtest", "color": "blue" }, { "name": "manualtest2", "color": "red" }, { "name": "manualtest3", "color": "orange" }], "date": "26/9/2016", "comment": "just something for testing"
+        },
         { "id": "2", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "3", "url": "#", "name": "test29", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "4", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
@@ -190,12 +204,6 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         { "id": "7", "url": "#", "name": "test4", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "8", "url": "#", "name": "test2", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" }
     ];
-
-    $scope.detailfile = {
-        "id": "1", "url": "#", "name": "test", "tags": [
-            { "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }
-        ], "date": "26/9/2016"
-    };
 
     $scope.filtershow = true;
     $scope.filterBtnText = "<<";
@@ -216,5 +224,47 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             $scope.filedivclass = "col-md-11";
         }
     };
+
+    $scope.detailfile = {
+        "id": "1", "url": "https://cdn.freefaxcoversheets.net/samples/basic.jpg", "name": "test", "tags": [
+            { "name": "test", "color": "lightblue" }, { "name": "test2", "color": "Cyan" }, { "name": "test3", "color": "DodgerBlue" },
+            { "name": "test4", "color": "DeepSkyBlue" }, { "name": "test5", "color": "DarkTurquoise" }
+        ], "manualtags": [
+            { "name": "manualtest", "color": "blue" }, { "name": "manualtest2", "color": "red" }, { "name": "manualtest3", "color": "orange" }
+        ], "generictags": [
+            { "name": "test", "color": "lightblue", "activated": false }, { "name": "test2", "color": "Cyan", "activated": false }, { "name": "test3", "color": "DodgerBlue", "activated": false },
+            { "name": "test4", "color": "DeepSkyBlue", "activated": false }, { "name": "test5", "color": "DarkTurquoise", "activated": false }
+        ], "date": "26/9/2016", "comment": "just something for testing"
+    };
+
+    $scope.saveDetailComment = function () {
+        console.log($scope.detailfile.comment);
+    };
+
+    $scope.generictagclick = function (clickedtag) {
+        //Todo some kind of API call to update generictags of the current detailfile and get the returned value (currently going to do it only clientsided for testing)
+        //console.log(clickedtag);
+        for (var i = 0; i < $scope.detailfile.generictags.length; i++) {
+            if ($scope.detailfile.generictags[i] === clickedtag) {
+                $scope.detailfile.generictags[i].activated = !$scope.detailfile.generictags[i].activated;
+            }
+        }
+    }
+
+    $scope.makeCostumTag = function () {
+        var tagCheck = CheckTag($scope.costumtagname);
+        if (tagCheck !== undefined) {
+            //todo showing error message
+        }
+        else {
+            var costumTag = { "name": $scope.costumtagname, "color": $scope.costumtagcolor };
+            console.log("new tag is:");
+            console.log(costumTag);
+            $scope.detailfile.manualtags.push(costumTag); //needs to be changed to an apicall with a detailfile as return value
+        }
+    };
+
+    //todo need to make a way to delete manual added tags
+
     init();
 });

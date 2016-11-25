@@ -128,25 +128,102 @@
 		</div>
 		<!-- modal-dialog -->
 
-		<div class="container">
-			<div style="">
-				<img class="preview col-md-6" src="{{scope.url}">
+		<div class="modal fade" id="addtagModal" tabindex="-1" role="dialog">
+			<div class="modal-dialog modal-lg" style="width:25%;">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">Add Tag</h4>
+					</div>
+					<div class="modal-body" style="padding: 3em;">
+						<div class="row">
+							<ul class="nav nav-tabs">
+								<li class="active"><a href="#generictags-form" data-toggle="tab">generic</a></li>
+								<li><a href="#costumtags-form" data-toggle="tab">custom</a></li>
+							</ul>
+							<div class="tab-content">
+								<div class="tab-pane active" id="generictags-form">
+									<form role="form" class="form-horizontal form-group">
+										<!--<div class="" ng-repeat="generictag in generictags">
+											<span class=" glyphicon glyphicon-ok" style="color:{{generictag.color}}" aria-hidden="true"></span>
+											<span class="color" style="width: 14px; height: 14px; display: inline-block; background-color: {{generictag.color}}"></span>{{generictag.name}}
+											<span class="glyphicon glyphicon glyphicon-remove" style="color: {{generictag.color}};" aria-hidden="true"></span>
+										</div>-->
+										<table class="table" style="width:50%;">
+											<tbody>
+												<tr class="{{generictag.name}}" ng-repeat="generictag in detailfile.generictags" ng-click="generictagclick(generictag)">
+													<td class="col-md-2"><span  ng-show="generictag.activated" class=" glyphicon glyphicon-ok" style="color:{{generictag.color}}" aria-hidden="true"></span> </td>
+													<td class="col-md-8"><span class="color" style="width: 14px; height: 14px; display: inline-block; background-color: {{generictag.color}}"></span>{{generictag.name}}</td>
+													<td class="col-md-2"><span ng-show="generictag.activated" class="glyphicon glyphicon glyphicon-remove" style="color: {{generictag.color}};" aria-hidden="true"></span></td>
+												</tr>
+											</tbody>
+										</table>
+									</form>
+								</div>
+								<div class="tab-pane" id="costumtags-form">
+									<form role="form" class="form-horizontal form-group">
+										<div class="">
+											<h4>Name:</h4>
+											<input type="text" class="form-control" ng-model="costumtagname" placeholder="tagname">
+											<h4>Color:</h4>
+											<input type="color" ng-model="costumtagcolor">
+										</div>
+										<br/>
+										<div id="uploadwarnings"></div>
+										<button class="btn btn-success" type="button" ng-click="makeCostumTag()">Make costum tag</button>
+									</form>
+								</div>
+
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+			<!-- modal-content -->
+		</div>
+		<!-- modal-dialog -->
+
+
+
+		<div class="container" style="position:relative;">
+			<div>
+				<img class="preview col-md-6" src="{{detailfile.url}}">
 				<div class="col-md-6">
 					<div>
-						<h3 class="" style="float:left">Doc #{{scope.id}}</h3>
+						<h3 class="" style="float:left">Doc #{{detailfile.id}}</h3>
 						<button class="downloadbutton btn btn-default" style="float:right"> 
+							Download
 							<span class=" glyphicon glyphicon-download" aria-hidden="true"></span>
 						</button>
 					</div>
 					<div style="clear:both;">
 						<h4>Date: {{detailfile.date}} </h4>
-						<div class="" style="height:300px; border:solid black;"></div>
-						<div class="tagdiv" ng-repeat="tag in detailfile.tags">
-							<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span>
+						<div class="" style="height:300px; border:solid black;">
+							<!--<div class="form-group">-->
+							<label for="comment">Comments:</label>
+							<textarea class="form-control" id="comment" style="resize:none; height:80%; " ng-model="detailfile.comment"></textarea>
+							<button class="btn btn-default" ng-click="saveDetailComment()">Save</button>
+							<!--</div>-->
+						</div>
+						<div class="automaticTagsdiv">
+							<div class="tagdiv" ng-repeat="tag in detailfile.tags">
+								<h3><span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span></h3>
+							</div>
+						</div>
+						<div class="manualTagsdiv">
+							<div class="tagdiv" ng-repeat="tag in detailfile.generictags" ng-show="tag.activated">
+								<h3><span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span></h3>
+							</div>
+							<div class="tagdiv" ng-repeat="tag in detailfile.manualtags">
+								<h3><span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span></h3>
+							</div>
+	
 						</div>
 					</div>
 				</div>
 			</div>
+			<button class="btn btn-default" style="position:absolute;right:10px;bottom:0px;" data-toggle="modal" data-target="#addtagModal">add Tag</button>
 		</div>
 
 		<div class="container suggestiondiv" style="">
