@@ -14,7 +14,6 @@ var azure = require('azure-storage');
 var azureconfig = require('./azure.json');
 var blobSvc = azure.createBlobService(azureconfig.connectionstring);
 var crypto = require('crypto');
-var sha256 = crypto.createHash('sha256');
 
 /**
  * @constructor
@@ -76,7 +75,7 @@ module.exports = function (debug) {
             // TODO: check the table
             db.Exists(sql,
                 'documents',
-                'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid int, size int);', undefined,
+                'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid int);', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -89,7 +88,7 @@ module.exports = function (debug) {
         function CheckFileTable() {
             db.Exists(sql,
                 'files',
-                'CREATE TABLE files([id] int IDENTITY(1,1) PRIMARY KEY, document int, type int);', undefined,
+                'CREATE TABLE files([id] int IDENTITY(1,1) PRIMARY KEY, document int, type int, name varchar(255), size int);', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -131,11 +130,10 @@ module.exports = function (debug) {
             }
         }
 
-        function createDocument(name, userid, size, callback) {
+        function createDocument(name, userid, callback) {
             var document = {
                 "name": name,
-                "userid": userid,
-                "size": size
+                "userid": userid
             };
             db.InsertObject(sql, 'documents', document, function (match, recordset) {
                 if (!match || recordset.length < 1) {
@@ -158,10 +156,12 @@ module.exports = function (debug) {
             }, 'id');
         }
 
-        function createFile(document, type, callback) {
+        function createFile(document, type, name, size, callback) {
             var file = {
                 "document": document,
-                "type": type
+                "type": type,
+                "name": name,
+                "size": size
             };
             db.InsertObject(sql, 'files', file, function (success, result) {
                 if (!success || result.length < 1) {
@@ -209,6 +209,7 @@ module.exports = function (debug) {
         };
 
         function HashPass(password, salt) {
+            var sha256 = crypto.createHash('sha256');
             sha256.update(salt + password + salt);
             return sha256.digest('hex');
         }
@@ -307,7 +308,7 @@ module.exports = function (debug) {
         };
 
         function rawUpload(documentid, type, stream, callback) {
-            createFile(documentid, type, function (success, id) {
+            createFile(documentid, type, stream.originalFilename, stream.size, function (success, id) {
                 if (!success) {
                     callback(false, id);
                     return;
@@ -345,7 +346,7 @@ module.exports = function (debug) {
                     rawUpload(documentid, original, stream, callback);
                 }
                 else {
-                    createDocument(stream.filename, user.id, stream.size, function (success, id) {
+                    createDocument(stream.filename, user.id, function (success, id) {
                         if (!success) {
                             callback(false, id);
                             return;
