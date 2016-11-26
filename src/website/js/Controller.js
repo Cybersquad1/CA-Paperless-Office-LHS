@@ -180,7 +180,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         $http.get('/getuser').then(function (response) {
             console.log(response.data);
             $scope.loggedin = response.data.loggedin;
-            if (!$scope.loggedin && $scope.file === "FileOverview") {
+            if (!$scope.loggedin && ($scope.file === "FileOverview" || $scope.file === "detailview")) {
                 console.log("error");
                 $window.location.href = '/index.html';
             }
@@ -190,6 +190,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         });
     }
 
+    //todo API call to get userfiles for FileOverview
     $scope.userfiles = [
         {
             "id": "1", "url": "https://cdn.freefaxcoversheets.net/samples/basic.jpg", "name": "test"
@@ -207,17 +208,18 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     $scope.filtershow = true;
     $scope.filterBtnText = "<<";
-    $scope.filedivclass = "col-md-9";
+    $scope.filedivclass = "col-md-8";
 
-    $scope.fileclick = function (fileID) {
-        console.log(fileID);
+    $scope.fileclick = function (file) {
+        console.log(file.id);
+        //todo linking to detailview + giving the right info in $scope.detailview (not sure how yet)
     };
 
     $scope.filtershowbtnclick = function () {
         $scope.filtershow = !$scope.filtershow;
         if ($scope.filtershow) {
             $scope.filterBtnText = "<<";
-            $scope.filedivclass = "col-md-9";
+            $scope.filedivclass = "col-md-8";
         }
         else {
             $scope.filterBtnText = ">>";
@@ -239,11 +241,31 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     $scope.saveDetailComment = function () {
         console.log($scope.detailfile.comment);
+        //todo api call to save comment
     };
+
+    $scope.filterchange = function () {
+        if ($scope.contentfilterCheckbox) {
+            console.log($scope.contentfilterText);
+            //todo correct API calls for filtered date (clientside or serversided)
+        }
+        if ($scope.datefilterCheckbox) {
+            console.log($scope.fromfilterText + " " + $scope.tofilterText);
+            //todo correct API calls for filtered date (clientside or serversided)
+        }
+        if ($scope.namefilterCheckbox) {
+            console.log($scope.namefilterText);
+            //todo correct API calls for filtered date (clientside or serversided)
+        }
+        if (
+            $scope.tagfilterCheckbox) {
+            console.log($scope.tagfilterText);
+            //todo correct API calls for filtered date (clientside or serversided)
+        }
+    }
 
     $scope.generictagclick = function (clickedtag) {
         //Todo some kind of API call to update generictags of the current detailfile and get the returned value (currently going to do it only clientsided for testing)
-        //console.log(clickedtag);
         for (var i = 0; i < $scope.detailfile.generictags.length; i++) {
             if ($scope.detailfile.generictags[i] === clickedtag) {
                 $scope.detailfile.generictags[i].activated = !$scope.detailfile.generictags[i].activated;
@@ -260,11 +282,13 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             var costumTag = { "name": $scope.costumtagname, "color": $scope.costumtagcolor };
             console.log("new tag is:");
             console.log(costumTag);
-            $scope.detailfile.manualtags.push(costumTag); //needs to be changed to an apicall with a detailfile as return value
+            $scope.detailfile.manualtags.push(costumTag); //todo needs to be changed to an apicall with a detailfile as return value
         }
     };
 
     //todo need to make a way to delete manual added tags
 
-    init();
+
+    //todo reactivate this
+    //init();
 });

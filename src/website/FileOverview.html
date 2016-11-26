@@ -130,37 +130,36 @@
 
 		<!--</div>-->
 		<div class="container">
-			<div class="col-md-3">
+			<div class="col-md-4">
 				<div class="filterdiv col-md-11 col-xs-11" ng-show="filtershow">
 					<h2>Filter:</h2>
-					<label><input type="checkbox" value="">Content</label>
-					<input type="text" class="form-control" id="">
-					<label><input type="checkbox" value="">Date</label>
+					<label><input type="checkbox" ng-model="contentfilterCheckbox">Content</label>
+					<input type="text" class="form-control" id="" ng-model="contentfilterText" ng-change="filterchange()">
+					<label><input type="checkbox" ng-model="datefilterCheckbox">Date</label>
 					<div class="form-group row">
 						<label class="col-xs-2">From:</label>
 						<div class="col-xs-10">
-							<input type="text" class="form-control" id="">
+							<input type="text" class="form-control" id="" ng-model="fromfilterText" ng-change="filterchange()">
 						</div>
 					</div>
 					<div class="form-group row">
 						<label class="col-xs-2">To:</label>
 						<div class="col-xs-10">
-							<input type="text" class="form-control" id="">
+							<input type="text" class="form-control" id="" ng-model="tofilterText" ng-change="filterchange()">
 						</div>
 					</div>
-					<label><input type="checkbox" value="">Name</label>
-					<input type="text" class="form-control" id="">
-					<label><input type="checkbox" value="">Tags</label>
-					<input style="margin-bottom:5%;" type="text" class="form-control" id="">
+					<label><input type="checkbox" value="" ng-model="namefilterCheckbox">Name</label>
+					<input type="text" class="form-control" id="" ng-model="namefilterText" ng-change="filterchange()">
+					<label><input type="checkbox" value="" ng-model="tagfilterCheckbox">Tag</label>
+					<input style="margin-bottom:5%;" type="text" class="form-control" id="" ng-model="tagfilterText" ng-change="filterchange()">
 				</div>
-				<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>
-			
+				<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>			
 			</div>
 			<div class="filesdiv " ng-class="filedivclass">
 				<div class="row row-centered">
-					<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file.name)">
+					<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file)" >
 						<h4>id:{{file.id}}</h4>
-						<img src="{{file.url}}">
+						<img style="max-width:95%; margin:auto; display:block;" src="{{file.url}}">
 						<div>
 							<div class="tagdiv" ng-repeat="tag in file.tags">
 								<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span>
