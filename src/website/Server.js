@@ -54,10 +54,9 @@ UserHandler.Init(app, function (err) {
     app.get("/getuser", function (req, res) {
         UserHandler.GetUserFromSession(req.session, function (match, user) {
             if (match) {
-                var cleanuser = user;
                 res.json({
                     "loggedin": true,
-                    "user": cleanuser
+                    "user": user
                 });
             }
             else {
@@ -116,7 +115,6 @@ UserHandler.Init(app, function (err) {
             }
             res.json(response);
         });
-
     });
 
     app.get('/', function (req, res) {
