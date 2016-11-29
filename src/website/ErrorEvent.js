@@ -67,6 +67,8 @@ module.exports = function (name) {
     this.Error = 1;
     this.ServerError = 2;
     this.DataBaseError = 3;
+    this.WebClientError = 4;
+    this.ClientError = 5;
 
     return this;
 };
