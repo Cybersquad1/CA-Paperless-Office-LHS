@@ -367,19 +367,18 @@ module.exports = function (debug) {
                     callback(false, "User id's not the same");
                     return;
                 }
-                db.MatchObject(sql, 'files', {"id": fileid}, function(match, recordset){
-                    if (match){
+                db.MatchObject(sql, 'files', { "id": fileid }, function (match, recordset) {
+                    if (match) {
                         var documentid = recordset[0].document;
-                        this.getDocument({"document": documentid, "userid": user.id}, function (match){
-                            if (match){
+                        this.getDocument({ "document": documentid, "userid": user.id }, function (match) {
+                            if (match) {
                                 var stream = blobSvc.CreateReadStream('paperless', fileid + '.blob');
                                 callback(true, stream);
-                            }
-                            else {
-                                callback(false, "No download available");
                                 return;
                             }
-                        })
+                            callback(false, "No download available");
+                            return;
+                        });
                     }
                     else {
                         callback(false, "No download available");
@@ -415,13 +414,13 @@ module.exports = function (debug) {
                     callback(false, "User id's not the same");
                     return;
                 }
-                var filter ={
+                var filter = {
                     "userid": user.id,
                     "documentid": documentid
                 };
                 this.getDocument(filter, function (match) {
-                    if (match){
-                        db.MatchObject(sql, 'files', { "document": documentid}, callback );
+                    if (match) {
+                        db.MatchObject(sql, 'files', { "document": documentid }, callback);
                     }
                     else {
                         callback(false, "No files available");

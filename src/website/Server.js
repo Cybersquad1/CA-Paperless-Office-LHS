@@ -139,29 +139,7 @@ UserHandler.Init(app, function (err) {
 
     app.post("/upload", function (req, res) {
         var form = new multiparty.Form();
-        var id, file;
-
-        /*form.on('part', function (part) {
-
-            partstream = part;
-            if (!part.filename) return;
-            var size = part.byteCount;
-            var name = part.filename;
-            console.log(part);
-            console.log("size:" + size + " Filename:" + name);
-            UserHandler.Upload(req.session, part,id, function (success, err) {
-                if (!success) {
-                    console.log(err);
-                }
-            });
-
-        });
-        form.on("field", function (name, value) {
-            var id = value
-            console.log("name: " + name + ", value: " + value)
-        });   
-        form.parse(req);
-        */
+        var file, id;
 
         form.parse(req, function (error, fields, files) {
             if (error) {
@@ -199,58 +177,57 @@ UserHandler.Init(app, function (err) {
                 fs.unlinkSync(file.path);
             });
         });
-
-
-
     });
-    
+
     app.get('/getdocuments', function (req, res) {
         UserHandler.GetDocuments(req.session, req.body.userid, req.body.filter, function (match, result) {
-            if(match){
-                response ={
+            var response;
+            if (match) {
+                response = {
                     "match": match,
                     "documents": result
-                }
+                };
             }
             else {
-                response ={
+                response = {
                     "match": match,
                     "error": result
-                }
+                };
             }
             res.json(response);
-        })
+        });
     });
 
     app.get('/getfiles', function (req, res) {
         UserHandler.GetFiles(req.session, req.body.userid, req.body.documentid, function (match, result) {
-            if (match){
-                response ={
+            var response;
+            if (match) {
+                response = {
                     "match": match,
                     "files": result
-                }
+                };
             }
             else {
-                response ={
+                response = {
                     "match": match,
                     "error": result
-                }
+                };
             }
             res.json(response);
-        })
+        });
     });
 
     app.get('/download', function (req, res) {
         UserHandler.Download(req.session, req.body.userid, req.body.documentid, function (match, stream) {
-            if(match){
+            if (match) {
                 res.set('Content-disposition', 'attachment; filename=' + 'name.jpg');
                 stream.pipe(res);
             }
             else {
-                response ={
+                res.json({
                     "match": match,
                     "error": stream
-                }
+                });
             }
         });
     });
