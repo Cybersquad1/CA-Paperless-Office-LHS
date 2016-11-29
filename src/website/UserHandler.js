@@ -357,9 +357,78 @@ module.exports = function (debug) {
             });
         };
 
-        this.Download = function (id, callback) {
-            var stream = blobSvc.createReadStream('paperless', id + '.blob');
-            callback(stream);
+        this.Download = function (session, userid, fileid, callback) {
+            this.GetUserFromSession(session, function (match, user) {
+                if (!match) {
+                    callback(false, 'User not logged in');
+                    return;
+                }
+                if (user.id !== userid) {
+                    callback(false, "User id's not the same");
+                    return;
+                }
+                db.MatchObject(sql, 'files', {"id": fileid}, function(match, recordset){
+                    if (match){
+                        var documentid = recordset[0].document;
+                        this.getDocument({"document": documentid, "userid": user.id}, function (match){
+                            if (match){
+                                var stream = blobSvc.CreateReadStream('paperless', fileid + '.blob');
+                                callback(true, stream);
+                            }
+                            else {
+                                callback(false, "No download available");
+                                return;
+                            }
+                        })
+                    }
+                    else {
+                        callback(false, "No download available");
+                        return;
+                    }
+                });
+            });
+        };
+
+        this.GetDocuments = function (session, userid, filter, callback) {
+            this.GetUserFromSession(session, function (match, user) {
+                filter = filter || {};
+                if (!match) {
+                    callback(false, 'User not logged in');
+                    return;
+                }
+                if (user.id !== userid) {
+                    callback(false, "User id's not the same");
+                    return;
+                }
+                filter.userid = user.id;
+                this.getDocument(filter, callback);
+            });
+        };
+
+        this.GetFiles = function (session, userid, documentid, callback) {
+            this.GetUserFromSession(session, function (match, user) {
+                if (!match) {
+                    callback(false, 'User not logged in');
+                    return;
+                }
+                if (user.id !== userid) {
+                    callback(false, "User id's not the same");
+                    return;
+                }
+                var filter ={
+                    "userid": user.id,
+                    "documentid": documentid
+                };
+                this.getDocument(filter, function (match) {
+                    if (match){
+                        db.MatchObject(sql, 'files', { "document": documentid}, callback );
+                    }
+                    else {
+                        callback(false, "No files available");
+                        return;
+                    }
+                });
+            });
         };
     };
     return this;

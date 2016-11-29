@@ -54,10 +54,9 @@ UserHandler.Init(app, function (err) {
     app.get("/getuser", function (req, res) {
         UserHandler.GetUserFromSession(req.session, function (match, user) {
             if (match) {
-                var cleanuser = user;
                 res.json({
                     "loggedin": true,
-                    "user": cleanuser
+                    "user": user
                 });
             }
             else {
@@ -116,7 +115,6 @@ UserHandler.Init(app, function (err) {
             }
             res.json(response);
         });
-
     });
 
     app.get('/', function (req, res) {
@@ -205,11 +203,55 @@ UserHandler.Init(app, function (err) {
 
 
     });
+    
+    app.get('/getdocuments', function (req, res) {
+        UserHandler.GetDocuments(req.session, req.body.userid, req.body.filter, function (match, result) {
+            if(match){
+                response ={
+                    "match": match,
+                    "documents": result
+                }
+            }
+            else {
+                response ={
+                    "match": match,
+                    "error": result
+                }
+            }
+            res.json(response);
+        })
+    });
+
+    app.get('/getfiles', function (req, res) {
+        UserHandler.GetFiles(req.session, req.body.userid, req.body.documentid, function (match, result) {
+            if (match){
+                response ={
+                    "match": match,
+                    "files": result
+                }
+            }
+            else {
+                response ={
+                    "match": match,
+                    "error": result
+                }
+            }
+            res.json(response);
+        })
+    });
 
     app.get('/download', function (req, res) {
-        UserHandler.Download(5, function (stream) {
-            res.set('Content-disposition', 'attachment; filename=' + 'name.jpg');
-            stream.pipe(res);
+        UserHandler.Download(req.session, req.body.userid, req.body.documentid, function (match, stream) {
+            if(match){
+                res.set('Content-disposition', 'attachment; filename=' + 'name.jpg');
+                stream.pipe(res);
+            }
+            else {
+                response ={
+                    "match": match,
+                    "error": stream
+                }
+            }
         });
     });
 
