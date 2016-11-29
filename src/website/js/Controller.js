@@ -186,6 +186,14 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             }
             else if ($scope.loggedin) {
                 $scope.user = response.data.user;
+                if($scope.file === "detailview"){
+                    var searchresult = location.search.substring(1);
+                    var searchparse = JSON.parse('{"' + decodeURI(searchresult).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+                    if(searchparse.id != undefined || searchparse.id != null){
+                        console.log(searchparse.id);
+                        //todo APIcall for documentinfo (with the id)
+                    }
+                }
             }
         });
     }
@@ -212,6 +220,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     $scope.fileclick = function (file) {
         console.log(file.id);
+        $window.location = "/detailview.html?id=" + file.id
         //todo linking to detailview + giving the right info in $scope.detailview (not sure how yet)
     };
 
@@ -269,6 +278,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         for (var i = 0; i < $scope.detailfile.generictags.length; i++) {
             if ($scope.detailfile.generictags[i] === clickedtag) {
                 $scope.detailfile.generictags[i].activated = !$scope.detailfile.generictags[i].activated;
+                //+getting current active generictags from file
             }
         }
     }
