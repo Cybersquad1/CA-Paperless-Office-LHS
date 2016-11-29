@@ -17,6 +17,16 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     }
 
+    function CheckTag(value) {
+        if (value === undefined) {
+            return { "error": "tag" + " cannot be undefined" }
+        }
+        var match = value.match(/^[0-9,\+-@.A-Za-z ]+$/);
+        if (match === null || match === undefined) {
+            return { "error": "tag" + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
+        }
+    }
+
     $scope.login = function () {
         var password = $scope.loginPassword;
         var username = $scope.loginUsername;
@@ -170,18 +180,31 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         $http.get('/getuser').then(function (response) {
             console.log(response.data);
             $scope.loggedin = response.data.loggedin;
-            if (!$scope.loggedin && $scope.file === "FileOverview") {
+            if (!$scope.loggedin && ($scope.file === "FileOverview" || $scope.file === "detailview")) {
                 console.log("error");
                 $window.location.href = '/index.html';
             }
             else if ($scope.loggedin) {
                 $scope.user = response.data.user;
+                if($scope.file === "detailview"){
+                    var searchresult = location.search.substring(1);
+                    var searchparse = JSON.parse('{"' + decodeURI(searchresult).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+                    if(searchparse.id != undefined || searchparse.id != null){
+                        console.log(searchparse.id);
+                        //todo APIcall for documentinfo (with the id)
+                    }
+                }
             }
         });
     }
 
+    //todo API call to get userfiles for FileOverview
     $scope.userfiles = [
-        { "id": "1", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
+        {
+            "id": "1", "url": "https://cdn.freefaxcoversheets.net/samples/basic.jpg", "name": "test"
+            , "tags": [{ "name": "test", "color": "lightblue" }, { "name": "test2", "color": "Cyan" }, { "name": "test3", "color": "DodgerBlue" }, { "name": "test4", "color": "DeepSkyBlue" }, { "name": "test5", "color": "DarkTurquoise" }]
+            , "manualtags": [{ "name": "manualtest", "color": "blue" }, { "name": "manualtest2", "color": "red" }, { "name": "manualtest3", "color": "orange" }], "date": "26/9/2016", "comment": "just something for testing"
+        },
         { "id": "2", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "3", "url": "#", "name": "test29", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "4", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
@@ -193,22 +216,89 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     $scope.filtershow = true;
     $scope.filterBtnText = "<<";
-    $scope.filedivclass = "col-md-9";
+    $scope.filedivclass = "col-md-8";
 
-    $scope.fileclick = function (fileID) {
-        console.log(fileID);
+    $scope.fileclick = function (file) {
+        console.log(file.id);
+        $window.location = "/detailview.html?id=" + file.id
+        //todo linking to detailview + giving the right info in $scope.detailview (not sure how yet)
     };
 
     $scope.filtershowbtnclick = function () {
         $scope.filtershow = !$scope.filtershow;
         if ($scope.filtershow) {
             $scope.filterBtnText = "<<";
-            $scope.filedivclass = "col-md-9";
+            $scope.filedivclass = "col-md-8";
         }
         else {
             $scope.filterBtnText = ">>";
             $scope.filedivclass = "col-md-11";
         }
     };
+
+    $scope.detailfile = {
+        "id": "1", "url": "https://cdn.freefaxcoversheets.net/samples/basic.jpg", "name": "test", "tags": [
+            { "name": "test", "color": "lightblue" }, { "name": "test2", "color": "Cyan" }, { "name": "test3", "color": "DodgerBlue" },
+            { "name": "test4", "color": "DeepSkyBlue" }, { "name": "test5", "color": "DarkTurquoise" }
+        ], "manualtags": [
+            { "name": "manualtest", "color": "blue" }, { "name": "manualtest2", "color": "red" }, { "name": "manualtest3", "color": "orange" }
+        ], "generictags": [
+            { "name": "test", "color": "lightblue", "activated": false }, { "name": "test2", "color": "Cyan", "activated": false }, { "name": "test3", "color": "DodgerBlue", "activated": false },
+            { "name": "test4", "color": "DeepSkyBlue", "activated": false }, { "name": "test5", "color": "DarkTurquoise", "activated": false }
+        ], "date": "26/9/2016", "comment": "just something for testing"
+    };
+
+    $scope.saveDetailComment = function () {
+        console.log($scope.detailfile.comment);
+        //todo api call to save comment
+    };
+
+    $scope.filterchange = function () {
+        if ($scope.contentfilterCheckbox) {
+            console.log($scope.contentfilterText);
+            //todo correct API calls for filtered date (clientside or serversided)
+        }
+        if ($scope.datefilterCheckbox) {
+            console.log($scope.fromfilterText + " " + $scope.tofilterText);
+            //todo correct API calls for filtered date (clientside or serversided)
+        }
+        if ($scope.namefilterCheckbox) {
+            console.log($scope.namefilterText);
+            //todo correct API calls for filtered date (clientside or serversided)
+        }
+        if (
+            $scope.tagfilterCheckbox) {
+            console.log($scope.tagfilterText);
+            //todo correct API calls for filtered date (clientside or serversided)
+        }
+    }
+
+    $scope.generictagclick = function (clickedtag) {
+        //Todo some kind of API call to update generictags of the current detailfile and get the returned value (currently going to do it only clientsided for testing)
+        for (var i = 0; i < $scope.detailfile.generictags.length; i++) {
+            if ($scope.detailfile.generictags[i] === clickedtag) {
+                $scope.detailfile.generictags[i].activated = !$scope.detailfile.generictags[i].activated;
+                //+getting current active generictags from file
+            }
+        }
+    }
+
+    $scope.makeCostumTag = function () {
+        var tagCheck = CheckTag($scope.costumtagname);
+        if (tagCheck !== undefined) {
+            //todo showing error message
+        }
+        else {
+            var costumTag = { "name": $scope.costumtagname, "color": $scope.costumtagcolor };
+            console.log("new tag is:");
+            console.log(costumTag);
+            $scope.detailfile.manualtags.push(costumTag); //todo needs to be changed to an apicall with a detailfile as return value
+        }
+    };
+
+    //todo need to make a way to delete manual added tags
+
+
+    //todo reactivate this
     init();
 });

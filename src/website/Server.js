@@ -132,6 +132,9 @@ UserHandler.Init(app, function (err) {
     app.get('/paymentplan.html', function (req, res) {
         res.sendFile(__dirname + "/" + "paymentplan.html");
     });
+    app.get('/detailview.html', function (req, res) {
+        res.sendFile(__dirname + "/" + "detailview.html");
+    });
 
 
     app.post("/upload", function (req, res) {
