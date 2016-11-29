@@ -290,5 +290,5 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
 
     //todo reactivate this
-    //init();
+    init();
 });
