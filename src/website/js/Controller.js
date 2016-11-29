@@ -6,15 +6,19 @@ var app = angular.module('myApp', ['ngFileUpload']);
 app.controller('PaperlessController', function ($scope, $http, Upload, $window, $timeout) {
     function CheckString(value, name) {
         if (value === undefined || value.length < 5) {
-            return { "error": name + " has a minimum of 5 characters." };
+            return { "error": name + " needs a minimum of 5 characters." };
         }
         if (value.length > 200) {
-            return { "error": name + " has a maximum of 200 characters." };
+            return { "error": name + " needs a maximum of 200 characters." };
         }
         var match = value.match(/^[0-9,\+-@.A-Za-z ]+$/);
         if (match === null || match === undefined) {
             return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
         }
+    }
+
+    function GoToFiles() {
+        window.location = "/FileOverview.html";
     }
 
     $scope.login = function () {
@@ -26,7 +30,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
         var error = usercheck || passcheck;
         if (error !== undefined) {
-            //todo: show error
+            showwarning(error.error, 'danger', 'Failed', 'login');
         }
         else {
             var pass = CryptoJS.SHA512(password).toString();
@@ -38,10 +42,17 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             var logindata = JSON.stringify($scope.loginData);
 
             $http.post('/login', logindata).then(function (logindatares) {
-                console.log(logindatares);
+                //console.log(logindatares);
                 $scope.loggedin = logindatares.data.loggedin;
                 if ($scope.loggedin) {
-                    $scope.user = logindatares.data.user;
+                    //$scope.user = logindatares.data.user;
+                    GoToFiles();
+                }
+                else {
+                    if (logindatares.data.error) {
+                        showwarning(logindatares.data.error, 'danger', 'Failed', 'login');
+                    }
+                    delete $scope.user;
                 }
             });
         }
@@ -49,7 +60,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     $scope.logout = function () {
         $http.get('/logout').then(function (response) {
-            console.log(response);
+            //console.log(response);
             $scope.loggedin = response.data.loggedin;
             if (!$scope.loggedin && $scope.file === "FileOverview") {
                 $window.location.href = '/index.html';
@@ -62,31 +73,42 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     $scope.register = function () {
         var password = $scope.registerPassword;
+        var cpassword = $scope.registercPassword;
         var username = $scope.registerUsername;
+        var email = $scope.registerEmail;
 
         var passcheck = CheckString(password, "Password");
         var usercheck = CheckString(username, "Username");
-        var emailcheck = CheckString(username, "Email");
+        var emailcheck = CheckString(email, "Email");
 
         var error = usercheck || passcheck || emailcheck;
+        if (cpassword !== password) {
+            error = error || { "error": "passwords don't match" };
+        }
         if (error !== undefined) {
-            //todo: show error
+            showwarning(error.error, 'danger', 'Failed', 'register');
         }
         else {
             var pass = CryptoJS.SHA512(password).toString();
             $scope.registerData = {
                 "username": username,
                 "password": pass,
-                "email": $scope.registerEmail
+                "email": email
             };
             var registerdata = JSON.stringify($scope.registerData);
 
             $http.post('/register', registerdata).then(function (response) {
-                console.log(response);
+                //console.log(response);
                 $scope.user = response.data.user;
                 $scope.loggedin = response.data.loggedin;
+                if ($scope.loggedin) {
+                    GoToFiles();
+                }
+                else if (response.data.error) {
+                    showwarning(response.data.error, 'danger', 'Failed', 'register');
+                }
             });
-            console.log('User registered', registerdata);
+            //console.log('User registered', registerdata);
         }
     };
 
@@ -98,15 +120,17 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     };
 
-    function showuploadwarning(warn, style, strong) {
-        $('#uploadwarnings').children().remove();
+    function showwarning(warn, style, strong, id) {
         style = style || 'danger';
         strong = strong || 'Warning';
+        id = id || 'upload';
+        id = '#' + id + 'warnings';
+        $(id).children().remove();
         var warning = '<div class="alert alert-' + style + ' alert-dismissible" role="alert">\
 								<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
 								<strong>' + strong + '!</strong> ' + warn + '.\
 						   </div>';
-        $('#uploadwarnings').append(warning);
+        $(id).append(warning);
     }
 
     function Uploadfile(file, callback, document) {
@@ -129,15 +153,16 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                 }
                 $scope.files.splice($scope.files.indexOf(file), 1);
                 if ($scope.files === undefined || $scope.files.length === 0) {
-                    showuploadwarning("All files uploaded", "success", "Done");
+                    showwarning("All files uploaded", "success", "Done");
                 }
             }
             else {
-                showuploadwarning(reply.error, "danger", "Failed");
+                showwarning(reply.error, "danger", "Failed");
             }
         }, function (response) {
-            if (response.status > 0)
+            if (response.status > 0) {
                 $scope.errorMsg = response.status + ': ' + response.data;
+            }
         }, function (evt) {
             file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
         });
@@ -148,10 +173,10 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         // $scope.errFiles = errFiles;
         var namecheck = CheckString($scope.documentname, "Name");
         if (namecheck !== undefined) {
-            showuploadwarning(namecheck.error);
+            showwarning(namecheck.error);
         }
         else if ($scope.files === undefined || $scope.files.length < 1) {
-            showuploadwarning('No files selected for upload');
+            showwarning('No files selected for upload');
         }
         else {
             var files = $scope.files;
