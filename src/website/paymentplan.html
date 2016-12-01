@@ -52,7 +52,7 @@
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav navbar-right">
 						<li class="active"><a href="index.html">Home</a></li>
-						<li ng-show="loggedin || registered"><a href="FileOverview.html">Overview page</a></li>
+						<li ng-show="loggedin || registered"><a href="FileOverview.html">FileOverview</a></li>
 						<li ng-hide="loggedin || registered"><a href="#" data-toggle="modal" data-target="#loginModal">Login/Register</a></li>
 						<li ng-show="loggedin || registered"><a href="#">Welcome, {{user.username}}</a></li>
 						<li ng-show="loggedin || registered"><a href="#" ng-click="logout()">Log Out</a></li>

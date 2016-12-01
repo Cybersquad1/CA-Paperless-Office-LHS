@@ -53,7 +53,7 @@
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav navbar-right">
 						<li><a href="index.html">Home</a></li>
-						<li class="active"><a href="#">Overview page</a></li>
+						<li class="active"><a href="#">FileOverview</a></li>
 						<li><a>Welcome, {{user.username}}</a></li>
 						<li><a href="#" data-toggle="modal" data-target="#uploadModal">Upload</a></li>
 						<li ng-if="loggedin"><a href="#" ng-click="logout()">Log Out</a></li>
@@ -157,15 +157,15 @@
 			</div>
 			<div class="filesdiv " ng-class="filedivclass">
 				<div class="row row-centered">
-					<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file)" >
-						<h4>id:{{file.id}}</h4>
-						<img style="max-width:95%; margin:auto; display:block;" src="{{file.url}}">
+					<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file)">
+						<h4 style="margin-left:5%;">{{file.name}}</h4>
+						<img class="fileimg" src="{{file.url}}">
 						<div>
 							<div class="tagdiv" ng-repeat="tag in file.tags">
 								<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span>
 							</div>
 							<div>
-								<p style="margin-top:10px;margin-bottom:0px" align="right">{{file.date}}</p>
+								<p style="margin-top:10px;margin-bottom:0px; margin-right:5% ;" align="right">{{file.date}}</p>
 							</div>
 						</div>
 					</div>
