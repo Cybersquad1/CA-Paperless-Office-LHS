@@ -114,7 +114,7 @@ module.exports = function (debug) {
         function CheckTagLinkedTable() {
             db.Exists(sql,
                 'linked',
-                'CREATE TABLE linked([id] int IDENTITY(1,1) PRIMARY KEY, documentid int, tagid int;', undefined,
+                'CREATE TABLE linked([id] int IDENTITY(1,1) PRIMARY KEY, documentid int, tagid int);', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
