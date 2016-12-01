@@ -198,6 +198,14 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     };
 
+    function LoadMoreFiles() {
+        $http.post("/getdocuments", { "userid": $scope.user.id, "filter": { "row": $scope.fileoverviewrow++ } }).then(function (response) {
+            if (response.data.match) {
+                $scope.userfiles = $scope.userfiles.concat(response.data.documents);
+            }
+        });
+    }
+
     function init() {
         var split = $window.location.pathname.split("/");
         split = split[split.length - 1].split(".");
@@ -219,12 +227,17 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                         //todo APIcall for documentinfo (with the id)
                     }
                 }
+                else if ($scope.file === "FileOverview") {
+                    $scope.LoadMoreFiles = LoadMoreFiles;
+                    $scope.fileoverviewrow = 1;
+                    LoadMoreFiles();
+                }
             }
         });
     }
 
     //todo API call to get userfiles for FileOverview
-    $scope.userfiles = [
+    $scope.userfiles = [];/*
         {
             "id": "1", "url": "https://cdn.freefaxcoversheets.net/samples/basic.jpg", "name": "test"
             , "tags": [{ "name": "test", "color": "lightblue" }, { "name": "test2", "color": "Cyan" }, { "name": "test3", "color": "DodgerBlue" }, { "name": "test4", "color": "DeepSkyBlue" }, { "name": "test5", "color": "DarkTurquoise" }]
@@ -237,7 +250,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         { "id": "6", "url": "#", "name": "test6", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "7", "url": "#", "name": "test4", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
         { "id": "8", "url": "#", "name": "test2", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" }
-    ];
+    ];*/
 
     $scope.filtershow = true;
     $scope.filterBtnText = "<<";

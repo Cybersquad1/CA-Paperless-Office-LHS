@@ -179,7 +179,7 @@ UserHandler.Init(app, function (err) {
         });
     });
 
-    app.get('/getdocuments', function (req, res) {
+    app.post('/getdocuments', function (req, res) {
         UserHandler.GetDocuments(req.session, req.body.userid, req.body.filter, function (match, result) {
             var response;
             if (match) {

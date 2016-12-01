@@ -171,15 +171,38 @@ module.exports = function (debug) {
             }, { "inserted": "id" });
         }
 
+        function GetTags(documentid, callback) {
+            db.Query(sql, "SELECT tag,color FROM linked INNER JOIN tags ON linked.tagid=tags.id WHERE linked.documentid = @did;", { "did": documentid }, callback);
+        }
+
         function getDocument(object, callback) {
+            var row = object.row || 0;
+            delete object.row;
             db.MatchObject(sql, 'documents', object, function (match, recordset) {
                 if (!match) {
                     callback(false, "Data not found");
                     return;
                 }
-                callback(true, recordset);
-                return;
-            }, 'id');
+                var length = recordset.length;
+                var done = 0;
+                for (let i = 0; i < length; i++) {
+                    GetTags(recordset[i].id, function (mmm, rs) {
+                        if (mmm) {
+                            recordset[i].tags = rs;
+                        }
+                        else {
+                            recordset[i].tags = [];
+                        }
+                        done++;
+                        if (done === length) {
+                            callback(true, recordset);
+                            return;
+                        }
+                    });
+                }
+                //callback(true, recordset);
+                //return;
+            }, { "sort": 'id', "limit": { "low": (row - 1) * 20, "high": row * 20 } });
         }
 
         function createFile(document, type, name, size, callback) {
@@ -415,23 +438,6 @@ module.exports = function (debug) {
         };
 
         this.GetDocuments = function (session, userid, filter, callback) {
-            /*WITH NumberedMyTable AS
-(
-    SELECT
-        Id,
-        Value,
-        ROW_NUMBER() OVER (ORDER BY Id) AS RowNumber
-    FROM
-        MyTable
-)
-SELECT
-    Id,
-    Value
-FROM
-    NumberedMyTable
-WHERE
-    RowNumber BETWEEN @From AND @To
-    limit x rows between from and to */
             this.GetUserFromSession(session, function (match, user) {
                 filter = filter || {};
                 if (!match) {
@@ -443,7 +449,7 @@ WHERE
                     return;
                 }
                 filter.userid = user.id;
-                this.getDocument(filter, callback);
+                getDocument(filter, callback);
             });
         };
 

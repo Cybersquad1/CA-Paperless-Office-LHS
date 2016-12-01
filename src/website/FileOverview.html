@@ -153,7 +153,7 @@
 					<label><input type="checkbox" value="" ng-model="tagfilterCheckbox">Tag</label>
 					<input style="margin-bottom:5%;" type="text" class="form-control" id="" ng-model="tagfilterText" ng-change="filterchange()">
 				</div>
-				<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>			
+				<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>
 			</div>
 			<div class="filesdiv " ng-class="filedivclass">
 				<div class="row row-centered">
@@ -162,12 +162,15 @@
 						<img class="fileimg" src="{{file.url}}">
 						<div>
 							<div class="tagdiv" ng-repeat="tag in file.tags">
-								<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span>
+								<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.tag}}</span>
 							</div>
 							<div>
 								<p style="margin-top:10px;margin-bottom:0px; margin-right:5% ;" align="right">{{file.date}}</p>
 							</div>
 						</div>
+					</div>
+					<div class="row">
+						<button class="btn" style="margin:auto;" ng-click="LoadMoreFiles()">Show More</button>
 					</div>
 				</div>
 			</div>

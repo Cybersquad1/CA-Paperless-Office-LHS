@@ -59,53 +59,6 @@ module.exports = function () {
         });
     };
 
-    /*function MakeArray(value) {
-        var internal;
-        if (value instanceof Array) {
-            internal = value;
-        }
-        else {
-            internal = [value];
-        }
-        return internal;
-    }*/
-
-    /*this.Match = function (sql, table, parameters, values, callback) {
-        var internalparameters, internalvalues;
-        internalparameters = MakeArray(parameters);
-        internalvalues = MakeArray(values);
-        if (internalparameters.length !== internalvalues.length || internalparameters.length < 1) {
-            ErrorEvent.HError("amount of parameters and values not equal or smaller than 1", ErrorEvent.DataBaseError);
-            if (callback !== undefined) {
-                callback(false);
-                return;
-            }
-        }
-        var query = "SELECT * FROM " + table + " WHERE ";
-        var request = new sql.Request();
-        for (var index = 0; index < internalparameters.length; index++) {
-            if (index > 0) {
-                query += " AND ";
-            }
-            request.input(internalparameters[index], sql.VarChar, internalvalues[index]);
-            query += internalparameters[index] + " = @" + internalparameters[index];
-        }
-        query += ";";
-        request.query(query, function (err, recordset) {
-            if (err !== undefined) {
-                ErrorEvent.HError(err, ErrorEvent.DataBaseError);
-                if (callback !== undefined) {
-                    callback(false);
-                    return;
-                }
-            }
-            else if (callback !== undefined) {
-                callback(recordset.length > 0, recordset);
-                return;
-            }
-        });
-    };*/
-
     this.MatchObject = function (sql, table, object, callback, Options) {
         var options = Options;
         if (typeof options === "string") {
@@ -116,77 +69,23 @@ module.exports = function () {
         options.operator = options.operator || "AND";
 
         var query = "SELECT " + options.select + " FROM " + table + " WHERE ";
-        var request = new sql.Request();
         var index = 0;
         for (var key in object) {
             if (index > 0) {
                 query += " " + options.operator + " ";
             }
-            request.input(key, object[key]);
             query += key + " = @" + key;
             index++;
         }
-        if (options.sort !== undefined) {
+        if (options.limit) {
+            query = "WITH NumberedMyTable AS(" + query.replace("FROM", ",ROW_NUMBER() OVER (ORDER BY " + options.sort + ") AS RowNumber FROM") + ") " + query.split("FROM")[0] + "FROM NumberedMyTable WHERE RowNumber BETWEEN " + options.limit.low + " AND " + options.limit.high;
+        }
+        else if (options.sort !== undefined) {
             query += " ORDER BY " + options.sort;
         }
         query += ";";
-        request.query(query, function (err, recordset) {
-            if (err !== undefined) {
-                ErrorEvent.HError(err, ErrorEvent.DataBaseError);
-                if (callback !== undefined) {
-                    callback(false);
-                    return;
-                }
-            }
-            else if (callback !== undefined) {
-                callback(recordset.length > 0, recordset);
-                return;
-            }
-        });
+        this.Query(sql, query, object, callback);
     };
-
-    /*this.Insert = function (sql, table, parameters, valuetypes, callback) {
-        var internalparameters, internalvalues;
-        internalparameters = MakeArray(parameters);
-        internalvalues = MakeArray(valuetypes);
-        if (internalparameters.length !== internalvalues.length || internalparameters.length < 1) {
-            ErrorEvent.HError("amount of parameters and values not equal or smaller than 1", ErrorEvent.DataBaseError);
-            if (callback !== undefined) {
-                callback(false);
-                return;
-            }
-        }
-        var query = "INSERT INTO " + table + " (";
-        for (var index = 0; index < internalparameters.length; index++) {
-            if (index > 0) {
-                query += ",";
-            }
-            query += internalparameters[index];
-        }
-        query += ") VALUES (";
-        var request = new sql.Request();
-        for (var index2 = 0; index2 < internalparameters.length; index2++) {
-            if (index2 > 0) {
-                query += ",";
-            }
-            request.input(internalparameters[index2], internalvalues[index2]);
-            query += "@" + internalparameters[index2];
-        }
-        query += ");";
-        request.query(query, function (err) {
-            if (err !== undefined) {
-                ErrorEvent.HError(err, ErrorEvent.DataBaseError);
-                if (callback !== undefined) {
-                    callback(false);
-                    return;
-                }
-            }
-            else if (callback !== undefined) {
-                callback(true);
-                return;
-            }
-        });
-    };*/
 
     this.InsertObject = function (sql, table, object, callback, Options) {
         var options = Options || {};
@@ -214,17 +113,23 @@ module.exports = function () {
             query += " ";
         }
         query += "VALUES (";
-        var request = new sql.Request();
         index = 0;
         for (var key2 in object) {
             if (index > 0) {
                 query += ",";
             }
-            request.input(key2, object[key2]);
             query += "@" + key2;
             index++;
         }
         query += ");";
+        this.Query(sql, query, object, callback);
+    };
+
+    this.Query = function (sql, query, object, callback) {
+        var request = new sql.Request();
+        for (var key in object) {
+            request.input(key, object[key]);
+        }
         request.query(query, function (err, recordset) {
             if (err !== undefined) {
                 ErrorEvent.HError(err, ErrorEvent.DataBaseError);
@@ -234,7 +139,7 @@ module.exports = function () {
                 }
             }
             else if (callback !== undefined) {
-                callback(true, recordset);
+                callback(recordset.length > 0, recordset);
                 return;
             }
         });
