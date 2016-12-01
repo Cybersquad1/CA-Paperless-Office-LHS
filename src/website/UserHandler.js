@@ -101,7 +101,7 @@ module.exports = function (debug) {
         function CheckTagTable() {
             db.Exists(sql,
                 'tags',
-                'CREATE TABLE tags([id] int IDENTITY(1,1) PRIMARY KEY, tag varchar(255), color varchar(255);', undefined,
+                'CREATE TABLE tags([id] int IDENTITY(1,1) PRIMARY KEY, tag varchar(255), color varchar(255));', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -415,6 +415,23 @@ module.exports = function (debug) {
         };
 
         this.GetDocuments = function (session, userid, filter, callback) {
+            /*WITH NumberedMyTable AS
+(
+    SELECT
+        Id,
+        Value,
+        ROW_NUMBER() OVER (ORDER BY Id) AS RowNumber
+    FROM
+        MyTable
+)
+SELECT
+    Id,
+    Value
+FROM
+    NumberedMyTable
+WHERE
+    RowNumber BETWEEN @From AND @To
+    limit x rows between from and to */
             this.GetUserFromSession(session, function (match, user) {
                 filter = filter || {};
                 if (!match) {

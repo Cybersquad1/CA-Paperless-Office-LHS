@@ -212,9 +212,9 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             else if ($scope.loggedin) {
                 $scope.user = response.data.user;
                 if ($scope.file === "detailview") {
-                    var searchresult = location.search.substring(1);
+                    var searchresult = window.location.search.substring(1);
                     var searchparse = JSON.parse('{"' + decodeURI(searchresult).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
-                    if (searchparse.id != undefined || searchparse.id != null) {
+                    if (searchparse.id) {
                         console.log(searchparse.id);
                         //todo APIcall for documentinfo (with the id)
                     }
