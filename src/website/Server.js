@@ -4,6 +4,9 @@ var express = require('express');
 var bodyparser = require('body-parser');
 var app = express();
 
+var api = require('project-oxford-ocr-api');
+var apikey = require('./ApiKey.json');
+
 var multiparty = require("multiparty");
 
 var UH = require('./UserHandler.js');
@@ -50,6 +53,8 @@ UserHandler.Init(app, function (err) {
         res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
         next();
     });
+
+    api.API_KEY = apikey.api_key;
 
     app.get("/getuser", function (req, res) {
         UserHandler.GetUserFromSession(req.session, function (match, user) {
@@ -136,7 +141,6 @@ UserHandler.Init(app, function (err) {
         res.sendFile(__dirname + "/" + "detailview.html");
     });
 
-
     app.post("/upload", function (req, res) {
         var form = new multiparty.Form();
         var file, id;
@@ -175,6 +179,14 @@ UserHandler.Init(app, function (err) {
                     res.json({ "success": success, "error": idOrError });
                 }
                 fs.unlinkSync(file.path);
+            });
+
+            api.fromStream({data: str}, function(error, response, result)
+            {
+                //To Do: send getAllText to next Api (text analysis) and generate thumbnail from image
+                /*console.log(result);
+                console.log(result.getAllText());
+                console.log(result.getTextByFlowDirection());*/
             });
         });
     });
