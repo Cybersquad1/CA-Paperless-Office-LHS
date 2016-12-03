@@ -172,13 +172,26 @@ module.exports = function (debug) {
         }
 
         function GetTags(documentid, callback) {
-            db.Query(sql, "SELECT tag,color FROM linked INNER JOIN tags ON linked.tagid=tags.id WHERE linked.documentid = @did;", { "did": documentid }, callback);
+            db.QueryObject(sql, { "select": "tag,color", "table": "linked", "join": { "table": "tags", "on": ["linked.tagid", "tags.id"] }, "equals": { "documentid": documentid } }, callback)
+            //db.Query(sql, "SELECT tag,color FROM linked INNER JOIN tags ON linked.tagid=tags.id WHERE linked.documentid = @did;", { "did": documentid }, callback);
         }
 
         function getDocument(object, callback) {
             var row = object.row || 0;
-            delete object.row;
-            db.MatchObject(sql, 'documents', object, function (match, recordset) {
+            //delete object.row;
+            var options = { "sort": 'id', "limit": { "low": (row - 1) * 20, "high": row * 20 }, "join": [], "equals": [], "like": [], "distinct": true, "select": "documents.*", "table": "documents", "sort": "documents.id" };
+            if (object.userid) {
+                options.equals.push({ "userid": object.userid });
+            }
+            if (object.name) {
+                options.like.push({ "name": object.name });
+            }
+            if (object.tag) {
+                options.join.push({ "table": "linked", "on": ["linked.documentid", "documents.id"] });
+                options.join.push({ "table": "tags", "on": ["linked.tagid", "tags.id"] });
+                options.equals.push({ "tag": object.tag });
+            }
+            db.QueryObject(sql, options, function (match, recordset) {
                 if (!match) {
                     callback(false, "Data not found");
                     return;
@@ -202,7 +215,7 @@ module.exports = function (debug) {
                 }
                 //callback(true, recordset);
                 //return;
-            }, { "sort": 'id', "limit": { "low": (row - 1) * 20, "high": row * 20 } });
+            });
         }
 
         function createFile(document, type, name, size, callback) {

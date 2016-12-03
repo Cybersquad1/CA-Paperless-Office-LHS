@@ -59,6 +59,92 @@ module.exports = function () {
         });
     };
 
+    function MakeArray(value) {
+        var internal;
+        if (value instanceof Array) {
+            internal = value;
+        }
+        else {
+            internal = [value];
+        }
+        return internal;
+    }
+
+    this.QueryObject = function (sql, Options, callback) {
+        if (!Options.table) {
+            callback(false, "No Table specified");
+            return;
+        }
+        Options.select = Options.select || "*";
+        var query = ["SELECT"];
+        if (Options.distinct) {
+            query.push("DISTINCT");
+        }
+        query.push(Options.select);
+        query.push("FROM");
+        query.push(Options.table);
+        if (Options.join) {
+            var join = MakeArray(Options.join);
+            for (var i = 0; i < join.length; i++) {
+                if (join[i].table) {
+                    query.push("INNER JOIN");
+                    query.push(join[i].table);
+                    if (join[i].on) {
+                        query.push("ON");
+                        query.push(join[i].on[0]);
+                        query.push("=");
+                        query.push(join[i].on[1]);
+                    }
+                }
+            }
+        }
+        var first = true;
+        var vars = {};
+        if (Options.equals) {
+            var equals = MakeArray(Options.equals);
+            for (var i = 0; i < equals.length; i++) {
+                var operator = equals[i].op || "AND";
+                for (var key in equals[i]) {
+                    if (first) {
+                        first = false;
+                        query.push("WHERE");
+                    }
+                    else {
+                        query.push(operator);
+                    }
+                    query.push(key + " = @" + key);
+                    vars[key] = equals[i][key];
+                }
+            }
+        }
+        if (Options.like) {
+            var like = MakeArray(Options.like);
+            for (var i = 0; i < like.length; i++) {
+                var operator = like[i].op || "AND";
+                for (var key in like[i]) {
+                    if (first) {
+                        first = false;
+                        query.push("WHERE");
+                    }
+                    else {
+                        query.push(operator);
+                    }
+                    query.push(key + " like '%@" + key + "%'");
+                    vars[key] = like[i][key];
+                }
+            }
+        }
+        query = query.join(" ");
+        if (Options.limit) {
+            query = "WITH NumberedMyTable AS(" + query.replace("FROM", ",ROW_NUMBER() OVER (ORDER BY " + Options.sort + ") AS RowNumber FROM") + ") SELECT * FROM NumberedMyTable WHERE RowNumber BETWEEN " + Options.limit.low + " AND " + Options.limit.high;
+        }
+        else if (Options.sort) {
+            query += " ORDER BY " + Options.sort;
+        }
+        query += ";";
+        this.Query(sql, query, vars, callback);
+    };
+
     this.MatchObject = function (sql, table, object, callback, Options) {
         var options = Options;
         if (typeof options === "string") {
@@ -68,14 +154,30 @@ module.exports = function () {
         options.select = options.select || "*";
         options.operator = options.operator || "AND";
 
-        var query = "SELECT " + options.select + " FROM " + table + " WHERE ";
+        var query = "SELECT " + options.select + " FROM " + table;
         var index = 0;
         for (var key in object) {
             if (index > 0) {
                 query += " " + options.operator + " ";
             }
+            else {
+                query += " WHERE ";
+            }
             query += key + " = @" + key;
             index++;
+        }
+        if (options.like) {
+            for (var lkey in options.like) {
+                if (index > 0) {
+                    query += " " + options.operator + " ";
+                }
+                else {
+                    query += " WHERE ";
+                }
+                query += lkey + " like @" + lkey;
+                object[lkey] = "%" + options.like[lkey] + "%";
+                index++;
+            }
         }
         if (options.limit) {
             query = "WITH NumberedMyTable AS(" + query.replace("FROM", ",ROW_NUMBER() OVER (ORDER BY " + options.sort + ") AS RowNumber FROM") + ") " + query.split("FROM")[0] + "FROM NumberedMyTable WHERE RowNumber BETWEEN " + options.limit.low + " AND " + options.limit.high;

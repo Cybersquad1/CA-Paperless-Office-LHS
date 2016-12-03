@@ -202,6 +202,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         $http.post("/getdocuments", { "userid": $scope.user.id, "filter": { "row": $scope.fileoverviewrow++ } }).then(function (response) {
             if (response.data.match) {
                 $scope.userfiles = $scope.userfiles.concat(response.data.documents);
+                console.log(response.data.documents);
             }
         });
     }
