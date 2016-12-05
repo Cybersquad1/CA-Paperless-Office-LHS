@@ -5,6 +5,7 @@ var bodyparser = require('body-parser');
 var app = express();
 
 var api = require('project-oxford-ocr-api');
+var request = require('request');
 var apikey = require('./ApiKey.json');
 
 var multiparty = require("multiparty");
@@ -54,7 +55,7 @@ UserHandler.Init(app, function (err) {
         next();
     });
 
-    api.API_KEY = apikey.api_key;
+    api.API_KEY = apikey.api_key_cv;
 
     app.get("/getuser", function (req, res) {
         UserHandler.GetUserFromSession(req.session, function (match, user) {
@@ -181,12 +182,48 @@ UserHandler.Init(app, function (err) {
                 fs.unlinkSync(file.path);
             });
 
-            api.fromStream({data: str}, function(error, response, result)
-            {
-                //To Do: send getAllText to next Api (text analysis) and generate thumbnail from image
-                /*console.log(result);
+            request({
+                method: 'POST',
+                url: 'https://api.projectoxford.ai/vision/v1.0/generateThumbnail?width=500&height=500&smartCropping=true',
+                headers: {
+                    'Content-type': 'application/octet-stream',
+                    'Ocp-Apim-Subscription-Key': apikey.api_key_cv
+                },
+                body: str
+            }, function (error, response, result) {
+                if (!error && response.statusCode == 200) {
+                    //Afbeelding nog doorgeven, ipv weer te geven in tekst
+                    console.log(result);
+                }
+            })
+
+            //Nog aan te passen (text uit afbeelding halen werkt, keyPhrases nog niet)
+            api.fromStream({ data: str }, function (error, response, result) {
                 console.log(result.getAllText());
-                console.log(result.getTextByFlowDirection());*/
+                if (!error && response.statusCode == 200) {
+                    request({
+                        method: 'POST',
+                        url: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/keyPhrases',
+                        headers: {
+                            'Content-type': 'application/json',
+                            'Ocp-Apim-Subscription-Key': apikey.api_key_text
+                        },
+                        body: {
+                            "documents": [
+                                {
+                                    "language": "unk",
+                                    "id": "1",
+                                    "text": JSON.stringify(result.getAllText())
+                                }
+                            ]
+                        }
+                    }, function (error, response, result) {
+                        if (!error && response.statusCode == 200) {
+                            console.log(result);
+                        }
+                    });
+                }
+
             });
         });
     });
