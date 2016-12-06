@@ -72,7 +72,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         $http.get('/logout').then(function (response) {
             //console.log(response);
             $scope.loggedin = response.data.loggedin;
-            if (!$scope.loggedin && $scope.file === "FileOverview") {
+            if (!$scope.loggedin && ($scope.file === "FileOverview" || $scope.file === "detailview")) {
                 $window.location.href = '/index.html';
             }
             else if (!$scope.loggedin) {
@@ -146,7 +146,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     function Uploadfile(file, callback, document) {
         var data = {
             "url": '/upload',
-            "data": { "id": $scope.user.id, "file": file, "document": $scope.documentname }
+            "data": { "id": $scope.user.id, "file": file, "document": $scope.documentname, "date": new Date() }
         };
         if (document) {
             data.data.documentid = document;
@@ -199,7 +199,9 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     };
 
     function LoadMoreFiles() {
-        $http.post("/getdocuments", { "userid": $scope.user.id, "filter": { "row": $scope.fileoverviewrow++ } }).then(function (response) {
+        $scope.filter = $scope.filter || {};
+        $scope.filter.row = $scope.filter.row || 1;
+        $http.post("/getdocuments", { "userid": $scope.user.id, "filter": $scope.filter }).then(function (response) {
             if (response.data.match) {
                 $scope.userfiles = $scope.userfiles.concat(response.data.documents);
                 console.log(response.data.documents);
@@ -229,6 +231,8 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                     }
                 }
                 else if ($scope.file === "FileOverview") {
+                    $('#fromdt').datetimepicker({ "showTodayButton": true }).on('dp.change', $scope.filterchange).data().DateTimePicker.date(new Date());
+                    $('#todt').datetimepicker({ "showTodayButton": true }).on('dp.change', $scope.filterchange).data().DateTimePicker.date(new Date());
                     $scope.LoadMoreFiles = LoadMoreFiles;
                     $scope.fileoverviewrow = 1;
                     LoadMoreFiles();
@@ -238,21 +242,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     }
 
     //todo API call to get userfiles for FileOverview
-    $scope.userfiles = [];/*
-        {
-            "id": "1", "url": "https://cdn.freefaxcoversheets.net/samples/basic.jpg", "name": "test"
-            , "tags": [{ "name": "test", "color": "lightblue" }, { "name": "test2", "color": "Cyan" }, { "name": "test3", "color": "DodgerBlue" }, { "name": "test4", "color": "DeepSkyBlue" }, { "name": "test5", "color": "DarkTurquoise" }]
-            , "manualtags": [{ "name": "manualtest", "color": "blue" }, { "name": "manualtest2", "color": "red" }, { "name": "manualtest3", "color": "orange" }], "date": "26/9/2016", "comment": "just something for testing"
-        },
-        { "id": "2", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
-        { "id": "3", "url": "#", "name": "test29", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
-        { "id": "4", "url": "#", "name": "test", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
-        { "id": "5", "url": "#", "name": "test7", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
-        { "id": "6", "url": "#", "name": "test6", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
-        { "id": "7", "url": "#", "name": "test4", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" },
-        { "id": "8", "url": "#", "name": "test2", "tags": [{ "name": "test", "color": "blue" }, { "name": "test2", "color": "red" }, { "name": "test3", "color": "orange" }], "date": "26/9/2016" }
-    ];*/
-
+    $scope.userfiles = [];
     $scope.filtershow = true;
     $scope.filterBtnText = "<<";
     $scope.filedivclass = "col-md-8";
@@ -293,24 +283,33 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     };
 
     $scope.filterchange = function () {
+        var currentfilter = {};
         if ($scope.contentfilterCheckbox) {
-            console.log($scope.contentfilterText);
-            //todo correct API calls for filtered date (clientside or serversided)
+            currentfilter.content = $scope.contentfilterText;
         }
         if ($scope.datefilterCheckbox) {
-            console.log($scope.fromfilterText + " " + $scope.tofilterText);
-            //todo correct API calls for filtered date (clientside or serversided)
+            currentfilter.date = { "from": $('#fromdt').data().DateTimePicker.date()._d, "to": $('#todt').data().DateTimePicker.date()._d };
         }
         if ($scope.namefilterCheckbox) {
-            console.log($scope.namefilterText);
-            //todo correct API calls for filtered date (clientside or serversided)
+            currentfilter.name = $scope.namefilterText;
         }
         if (
             $scope.tagfilterCheckbox) {
-            console.log($scope.tagfilterText);
-            //todo correct API calls for filtered date (clientside or serversided)
+            currentfilter.tag = $scope.tagfilterText;
         }
-    }
+        if ($scope.filtertimeoutrunning) {
+            clearTimeout($scope.filtertimeout);
+        }
+        $scope.filtertimeoutrunning = true;
+        $scope.filtertimeout = setTimeout(function () {
+            console.log(currentfilter);
+            $scope.filter = currentfilter;
+            $scope.filtertimeoutrunning = false;
+            $scope.userfiles = [];
+            $scope.fileoverviewrow = 1;
+            LoadMoreFiles();
+        }, 2500);
+    };
 
     $scope.generictagclick = function (clickedtag) {
         //Todo some kind of API call to update generictags of the current detailfile and get the returned value (currently going to do it only clientsided for testing)

@@ -32,6 +32,10 @@
 	<!-- Stylesheets -->
 	<link href="/css/carousel.css" rel="stylesheet">
 	<link href="/css/FileOverview.css" rel="stylesheet">
+	<!--for datetime picker-->
+	<script type="text/javascript" src="/js/moment.js"></script>
+	<script type="text/javascript" src="/js/bootstrap-datetimepicker.min.js"></script>
+	<link href="/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -133,24 +137,30 @@
 			<div class="col-md-4">
 				<div class="filterdiv col-md-11 col-xs-11" ng-show="filtershow">
 					<h2>Filter:</h2>
-					<label><input type="checkbox" ng-model="contentfilterCheckbox">Content</label>
+					<label><input type="checkbox" ng-model="contentfilterCheckbox" ng-change="filterchange()">Content</label>
 					<input type="text" class="form-control" id="" ng-model="contentfilterText" ng-change="filterchange()">
-					<label><input type="checkbox" ng-model="datefilterCheckbox">Date</label>
+					<label><input type="checkbox" ng-model="datefilterCheckbox" ng-change="filterchange()">Date</label>
 					<div class="form-group row">
 						<label class="col-xs-2">From:</label>
-						<div class="col-xs-10">
-							<input type="text" class="form-control" id="" ng-model="fromfilterText" ng-change="filterchange()">
+						<div class='input-group date' id='fromdt'>
+							<input type='text' class="form-control" ng-model="datefilterfrom" ng-change="filterchange()" />
+							<span class="input-group-addon">
+                        		<span class="glyphicon glyphicon-calendar"></span>
+							</span>
 						</div>
 					</div>
 					<div class="form-group row">
 						<label class="col-xs-2">To:</label>
-						<div class="col-xs-10">
-							<input type="text" class="form-control" id="" ng-model="tofilterText" ng-change="filterchange()">
+						<div class='input-group date' id='todt'>
+							<input type='text' class="form-control" ng-model="datefilterto" ng-change="filterchange()" />
+							<span class="input-group-addon">
+                        		<span class="glyphicon glyphicon-calendar"></span>
+							</span>
 						</div>
 					</div>
-					<label><input type="checkbox" value="" ng-model="namefilterCheckbox">Name</label>
+					<label><input type="checkbox" value="" ng-model="namefilterCheckbox" ng-change="filterchange()">Name</label>
 					<input type="text" class="form-control" id="" ng-model="namefilterText" ng-change="filterchange()">
-					<label><input type="checkbox" value="" ng-model="tagfilterCheckbox">Tag</label>
+					<label><input type="checkbox" value="" ng-model="tagfilterCheckbox" ng-change="filterchange()">Tag</label>
 					<input style="margin-bottom:5%;" type="text" class="form-control" id="" ng-model="tagfilterText" ng-change="filterchange()">
 				</div>
 				<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>

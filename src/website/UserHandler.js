@@ -75,7 +75,7 @@ module.exports = function (debug) {
             // TODO: check the table
             db.Exists(sql,
                 'documents',
-                'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid int);', undefined,
+                'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid INT, date DATETIME, content varchar(1000));', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -150,16 +150,17 @@ module.exports = function (debug) {
             if (value.length > 200) {
                 return { "error": name + " has a maximum of 200 characters." };
             }
-            var match = value.match(/^[0-9,\+-@.A-Za-z ]+$/);
+            var match = value.match(/^[0-9,\+-@_.A-Za-z ]+$/);
             if (match === null || match === undefined) {
                 return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
             }
         }
 
-        function createDocument(name, userid, callback) {
+        function createDocument(name, userid, date, callback) {
             var document = {
                 "name": name,
-                "userid": userid
+                "userid": userid,
+                "date": date
             };
             db.InsertObject(sql, 'documents', document, function (match, recordset) {
                 if (!match || recordset.length < 1) {
@@ -178,7 +179,6 @@ module.exports = function (debug) {
 
         function getDocument(object, callback) {
             var row = object.row || 0;
-            //delete object.row;
             var options = { "sort": 'id', "limit": { "low": (row - 1) * 20, "high": row * 20 }, "join": [], "equals": [], "like": [], "distinct": true, "select": "documents.*", "table": "documents", "sort": "documents.id" };
             if (object.userid) {
                 options.equals.push({ "userid": object.userid });
@@ -190,6 +190,10 @@ module.exports = function (debug) {
                 options.join.push({ "table": "linked", "on": ["linked.documentid", "documents.id"] });
                 options.join.push({ "table": "tags", "on": ["linked.tagid", "tags.id"] });
                 options.equals.push({ "tag": object.tag });
+            }
+            if (object.date){
+                //options.from options.to
+
             }
             db.QueryObject(sql, options, function (match, recordset) {
                 if (!match) {
@@ -390,7 +394,7 @@ module.exports = function (debug) {
         var original = 1;
         var imagepage = 2;
 
-        this.Upload = function (session, stream, userid, documentid, callback) {
+        this.Upload = function (session, data, userid, documentid, callback) {
             if (callback === undefined) {
                 callback = documentid;
                 documentid = undefined;
@@ -405,15 +409,15 @@ module.exports = function (debug) {
                     return;
                 }
                 if (documentid !== undefined) {
-                    rawUpload(documentid, original, stream, callback);
+                    rawUpload(documentid, original, data.stream, callback);
                 }
                 else {
-                    createDocument(stream.filename, user.id, function (success, id) {
+                    createDocument(data.filename, user.id, data.date, function (success, id) {
                         if (!success) {
                             callback(false, id);
                             return;
                         }
-                        rawUpload(id, original, stream, callback);
+                        rawUpload(id, original, data.stream, callback);
                     });
                 }
             });

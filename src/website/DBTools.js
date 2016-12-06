@@ -129,8 +129,8 @@ module.exports = function () {
                     else {
                         query.push(operator);
                     }
-                    query.push(key + " like '%@" + key + "%'");
-                    vars[key] = like[i][key];
+                    query.push(key + " like @" + key);
+                    vars[key] = "%" + like[i][key] + "%";
                 }
             }
         }

@@ -165,11 +165,14 @@ UserHandler.Init(app, function (err) {
             if (fields.document === undefined) {
                 res.json({ "success": false, "error": "No name supplied" });
             }
+            if (fields.date === undefined) {
+                res.json({ "success": false, "error": "No date supplied" });
+            }
             var str = fs.createReadStream(file.path);
-            str.filename = fields.document[0];
             str.size = file.size;
             str.originalFilename = file.originalFilename;
-            UserHandler.Upload(req.session, str, id, documentid, function (success, idOrError, fileid) {
+            var data = { "stream": str, "filename": fields.document[0], "date": fields.date };
+            UserHandler.Upload(req.session, data, id, documentid, function (success, idOrError, fileid) {
                 if (success) {
                     console.log("Uploaded: " + file.originalFilename + ":" + file.size);
                     res.json({ "success": success, "document": idOrError, "file": fileid });
@@ -181,8 +184,7 @@ UserHandler.Init(app, function (err) {
                 fs.unlinkSync(file.path);
             });
 
-            api.fromStream({data: str}, function(error, response, result)
-            {
+            api.fromStream({ data: str }, function (error, response, result) {
                 //To Do: send getAllText to next Api (text analysis) and generate thumbnail from image
                 /*console.log(result);
                 console.log(result.getAllText());
