@@ -209,11 +209,6 @@
 							<button class="btn btn-default" ng-click="saveDetailComment()">Save</button>
 							<!--</div>-->
 						</div>
-						<div class="automaticTagsdiv">
-							<div class="tagdiv" ng-repeat="tag in detailfile.tags">
-								<h3><span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span></h3>
-							</div>
-						</div>
 						<div class="manualTagsdiv">
 							<div class="tagdiv" ng-repeat="tag in detailfile.generictags" ng-show="tag.activated">
 								<h3><span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span></h3>

@@ -11,9 +11,9 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         if (value.length > 200) {
             return { "error": name + " needs a maximum of 200 characters." };
         }
-        var match = value.match(/^[0-9,\+-@.A-Za-z ]+$/);
+        var match = value.match(/^[0-9,\+-_@.A-Za-z ]+$/);
         if (match === null || match === undefined) {
-            return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
+            return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-_\\@. are allowed." };
         }
     }
 
@@ -21,9 +21,9 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         if (value === undefined) {
             return { "error": "tag" + " cannot be undefined" }
         }
-        var match = value.match(/^[0-9,\+-@.A-Za-z ]+$/);
+        var match = value.match(/^[0-9,\+-_@.A-Za-z ]+$/);
         if (match === null || match === undefined) {
-            return { "error": "tag" + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
+            return { "error": "tag" + " contains illegal characters. Only letters, numbers, spaces and +-_\\@. are allowed." };
         }
     }
 

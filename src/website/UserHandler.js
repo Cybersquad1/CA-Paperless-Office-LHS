@@ -152,7 +152,7 @@ module.exports = function (debug) {
             }
             var match = value.match(/^[0-9,\+-@_.A-Za-z ]+$/);
             if (match === null || match === undefined) {
-                return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
+                return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-_\\@. are allowed." };
             }
         }
 
