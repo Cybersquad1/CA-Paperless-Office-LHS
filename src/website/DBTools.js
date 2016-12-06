@@ -134,6 +134,24 @@ module.exports = function () {
                 }
             }
         }
+        if (Options.between) {
+            var between = MakeArray(Options.between);
+            for (var i = 0; i < between.length; i++) {
+                var operator = between[i].op || "AND";
+                for (var key in between[i]) {
+                    if (first) {
+                        first = false;
+                        query.push("WHERE");
+                    }
+                    else {
+                        query.push(operator);
+                    }
+                    query.push(key + " between @" + key + "1 and @" + key + "2");
+                    vars[key + "1"] = between[i][key][0];
+                    vars[key + "2"] = between[i][key][1];
+                }
+            }
+        }
         query = query.join(" ");
         if (Options.limit) {
             query = "WITH NumberedMyTable AS(" + query.replace("FROM", ",ROW_NUMBER() OVER (ORDER BY " + Options.sort + ") AS RowNumber FROM") + ") SELECT * FROM NumberedMyTable WHERE RowNumber BETWEEN " + Options.limit.low + " AND " + Options.limit.high;
@@ -241,6 +259,10 @@ module.exports = function () {
                 }
             }
             else if (callback !== undefined) {
+                if (recordset === undefined) {
+                    callback(true);
+                    return;
+                }
                 callback(recordset.length > 0, recordset);
                 return;
             }

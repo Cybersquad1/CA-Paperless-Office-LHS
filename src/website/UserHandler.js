@@ -179,7 +179,7 @@ module.exports = function (debug) {
 
         function getDocument(object, callback) {
             var row = object.row || 0;
-            var options = { "sort": 'id', "limit": { "low": (row - 1) * 20, "high": row * 20 }, "join": [], "equals": [], "like": [], "distinct": true, "select": "documents.*", "table": "documents", "sort": "documents.id" };
+            var options = { "sort": 'id', "limit": { "low": (row - 1) * 20, "high": row * 20 }, "join": [], "equals": [], "like": [], "between": [], "distinct": true, "select": "documents.*", "table": "documents", "sort": "documents.id" };
             if (object.userid) {
                 options.equals.push({ "userid": object.userid });
             }
@@ -191,9 +191,8 @@ module.exports = function (debug) {
                 options.join.push({ "table": "tags", "on": ["linked.tagid", "tags.id"] });
                 options.equals.push({ "tag": object.tag });
             }
-            if (object.date){
-                //options.from options.to
-
+            if (object.date) {
+                options.between.push({"date":[new Date(object.date.from), new Date(object.date.to)]});
             }
             db.QueryObject(sql, options, function (match, recordset) {
                 if (!match) {
