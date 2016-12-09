@@ -194,6 +194,9 @@ module.exports = function (debug) {
             if (object.date) {
                 options.between.push({"date":[new Date(object.date.from), new Date(object.date.to)]});
             }
+            if (object.content) {
+                options.like.push({ "content": object.content });
+            }
             db.QueryObject(sql, options, function (match, recordset) {
                 if (!match) {
                     callback(false, "Data not found");
