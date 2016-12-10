@@ -75,13 +75,52 @@ module.exports = function () {
             callback(false, "No Table specified");
             return;
         }
-        Options.select = Options.select || "*";
-        var query = ["SELECT"];
-        if (Options.distinct) {
-            query.push("DISTINCT");
+        if (!Options.insert && !Options.select) {
+            Options.select = "*";
         }
-        query.push(Options.select);
-        query.push("FROM");
+        var query = [];
+        if (Options.insert) {
+            query.push("INSERT INTO " + Options.table + " (");
+            var index = 0;
+            for (var key in Options.insert) {
+                if (index > 0) {
+                    query.push(",");
+                }
+                query.push(key);
+                index++;
+            }
+            query.push(")");
+            if (Options.inserted || Options.output) {
+                query.push("OUTPUT");
+                if (Options.inserted) {
+                    query.push("INSERTED." + Options.inserted);
+                    if (Options.output) {
+                        query.push(",");
+                    }
+                }
+                if (Options.output) {
+                    query.push(Options.output);
+                }
+            }
+            query.push("VALUES (");
+            index = 0;
+            for (var key2 in Options.insert) {
+                if (index > 0) {
+                    query.push(",");
+                }
+                query.push("@" + key2);
+                index++;
+            }
+            query.push(");");
+        }
+        if (Options.select) {
+            query.push("SELECT");
+            if (Options.distinct) {
+                query.push("DISTINCT");
+            }
+            query.push(Options.select);
+            query.push("FROM");
+        }
         query.push(Options.table);
         if (Options.join) {
             var join = MakeArray(Options.join);

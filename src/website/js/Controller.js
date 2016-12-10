@@ -198,6 +198,20 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     };
 
+    function FormatDate(document) {
+        if (!document.formateddate) {
+            var formatdate;
+            if (document.date) {
+                var date = new Date(document.date);
+                formatdate = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes();
+            }
+            else {
+                formatdate = null;
+            }
+            document.formateddate = formatdate;
+        }
+    }
+
     function LoadMoreFiles() {
         $scope.filter = $scope.filter || {};
         $scope.filter.row = $scope.filter.row || 1;
@@ -205,16 +219,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             if (response.data.match) {
                 $scope.userfiles = $scope.userfiles.concat(response.data.documents);
                 for (var i = 0; i < $scope.userfiles.length; i++) {
-                    if ($scope.userfiles[i].formateddate != undefined) {
-                        var formatdate;
-                        if ($scope.userfiles[i].date != null) {
-                            var date = new Date($scope.userfiles[i].date);
-                            formatdate = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes();
-                        } else {
-                            formatdate = null;
-                        }
-                        $scope.userfiles[i].formateddate = formatdate;
-                    }
+                    FormatDate($scope.userfiles[i]);
                 }
                 console.log(response.data.documents);
             }
@@ -239,7 +244,17 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                     var searchparse = JSON.parse('{"' + decodeURI(searchresult).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
                     if (searchparse.id) {
                         console.log(searchparse.id);
-                        //todo APIcall for documentinfo (with the id)
+                        $http.post("/getdetaildocument", { "userid": $scope.user.id, "document": searchparse.id }).then(function (res) {
+                            console.log(res);
+                            if (res.data.error) {
+                                console.log(res.data.error);
+                                return;
+                            }
+                            $scope.detailfile = res.data.document;
+                            $scope.detailfile.tags = $scope.detailfile.tags || [];
+                            $scope.usertags = res.data.tags || [];
+                            FormatDate($scope.detailfile);
+                        });
                     }
                 }
                 else if ($scope.file === "FileOverview") {
@@ -261,8 +276,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     $scope.fileclick = function (file) {
         console.log(file.id);
-        $window.location = "/detailview.html?id=" + file.id
-        //todo linking to detailview + giving the right info in $scope.detailview (not sure how yet)
+        $window.location = "/detailview.html?id=" + file.id;
     };
 
     $scope.filtershowbtnclick = function () {
@@ -277,7 +291,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     };
 
-    $scope.detailfile = {
+    /*$scope.detailfile = {
         "id": "1", "url": "https://cdn.freefaxcoversheets.net/samples/basic.jpg", "name": "test", "tags": [
             { "name": "test", "color": "lightblue" }, { "name": "test2", "color": "Cyan" }, { "name": "test3", "color": "DodgerBlue" },
             { "name": "test4", "color": "DeepSkyBlue" }, { "name": "test5", "color": "DarkTurquoise" }
@@ -287,7 +301,12 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             { "name": "test", "color": "lightblue", "activated": false }, { "name": "test2", "color": "Cyan", "activated": false }, { "name": "test3", "color": "DodgerBlue", "activated": false },
             { "name": "test4", "color": "DeepSkyBlue", "activated": false }, { "name": "test5", "color": "DarkTurquoise", "activated": false }
         ], "date": "26/9/2016", "comment": "just something for testing"
-    };
+    };*/
+
+    /*$scope.generictags = [
+            { "name": "test", "color": "lightblue", "activated": false }, { "name": "test2", "color": "Cyan", "activated": false }, { "name": "test3", "color": "DodgerBlue", "activated": false },
+            { "name": "test4", "color": "DeepSkyBlue", "activated": false }, { "name": "test5", "color": "DarkTurquoise", "activated": false }
+        ];*/
 
     $scope.saveDetailComment = function () {
         console.log($scope.detailfile.comment);
@@ -324,13 +343,15 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     };
 
     $scope.generictagclick = function (clickedtag) {
+        //console.log(clickedtag);
         //Todo some kind of API call to update generictags of the current detailfile and get the returned value (currently going to do it only clientsided for testing)
-        for (var i = 0; i < $scope.detailfile.generictags.length; i++) {
+        /*for (var i = 0; i < $scope.detailfile.generictags.length; i++) {
             if ($scope.detailfile.generictags[i] === clickedtag) {
                 $scope.detailfile.generictags[i].activated = !$scope.detailfile.generictags[i].activated;
                 //+getting current active generictags from file
             }
-        }
+        }*/
+        $scope.detailfile.tags.push(clickedtag);
     }
 
     $scope.makeCostumTag = function () {
@@ -342,7 +363,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             var costumTag = { "name": $scope.costumtagname, "color": $scope.costumtagcolor };
             console.log("new tag is:");
             console.log(costumTag);
-            $scope.detailfile.manualtags.push(costumTag); //todo needs to be changed to an apicall with a detailfile as return value
+            $scope.usertags.push(costumTag); //todo needs to be changed to an apicall with a detailfile as return value
         }
     };
 

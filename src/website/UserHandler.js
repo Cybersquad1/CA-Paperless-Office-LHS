@@ -100,7 +100,7 @@ module.exports = function (debug) {
         function CheckTagTable() {
             db.Exists(sql,
                 'tags',
-                'CREATE TABLE tags([id] int IDENTITY(1,1) PRIMARY KEY, tag varchar(255), color varchar(255));', undefined,
+                'CREATE TABLE tags([id] int IDENTITY(1,1) PRIMARY KEY, tag varchar(255), color varchar(255), userid INT);', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -171,17 +171,40 @@ module.exports = function (debug) {
             }, { "inserted": "id" });
         }
 
-        function GetTags(documentid, callback) {
-            db.QueryObject(sql, { "select": "tag,color", "table": "linked", "join": { "table": "tags", "on": ["linked.tagid", "tags.id"] }, "equals": { "documentid": documentid } }, callback)
+        function GetTags(userid, documentid, callback) {
+            var options = { "select": "tag, color", "table": "tags", "equals": [{ "userid": userid }] };
+            if (documentid) {
+                options.join = { "table": "linked", "on": ["tags.id", "linked.tagid"] };
+                options.equals.push({ "documentid": documentid });
+            }
+            db.QueryObject(sql, options, callback);
             //db.Query(sql, "SELECT tag,color FROM linked INNER JOIN tags ON linked.tagid=tags.id WHERE linked.documentid = @did;", { "did": documentid }, callback);
+        }
+
+        this.GetTags = function (session, userid, documentid, callback) {
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            GetTags(userid, documentid, callback);
+        }
+
+        function AddTag(userid, tag, callback) {
+            var insert = {
+                tag: tag.tag,
+                color: tag.color,
+                userid: userid
+            }
+            db.QueryObject(sql, { "insert": insert, "inserted": "id" }, callback);
         }
 
         function getDocument(object, callback) {
             var row = object.row || 0;
             var options = { "sort": 'id', "limit": { "low": (row - 1) * 20, "high": row * 20 }, "join": [], "equals": [], "like": [], "between": [], "distinct": true, "select": "documents.date,documents.id,documents.name", "table": "documents", "sort": "documents.id" };
-            if (object.userid) {
-                options.equals.push({ "userid": object.userid });
+            if (!object.userid) {
+                callback(false, "No userid");
             }
+            options.equals.push({ "userid": object.userid });
             if (object.name) {
                 options.like.push({ "name": object.name });
             }
@@ -205,7 +228,7 @@ module.exports = function (debug) {
                 var done = 0;
                 for (let i = 0; i < length; i++) {
                     delete recordset[i].RowNumber;
-                    GetTags(recordset[i].id, function (mmm, rs) {
+                    GetTags(object.userid, recordset[i].id, function (mmm, rs) {
                         if (mmm) {
                             recordset[i].tags = rs;
                         }
@@ -223,12 +246,12 @@ module.exports = function (debug) {
         }
 
         function GetDetailDocument(userid, documentid, callback) {
-            db.QueryObject(sql, { "equals": { "userid": userid, "documentid": documentid }, "select": "documents.*", "table": "documents" }, function (match, recordset) {
+            db.QueryObject(sql, { "equals": { "userid": userid, "id": documentid }, "select": "documents.*", "table": "documents" }, function (match, recordset) {
                 if (!match || recordset.length !== 1) {
                     callback(false, "Data not found");
                     return;
                 }
-                GetTags(recordset[0].id, function (mmm, rs) {
+                GetTags(userid, recordset[0].id, function (mmm, rs) {
                     if (mmm) {
                         recordset[0].tags = rs;
                     }
@@ -278,6 +301,15 @@ module.exports = function (debug) {
             else {
                 callback(false);
                 return;
+            }
+        };
+
+        this.GetIdFromSession = function (session) {
+            if (session.user && session.user.id && session.user.loggedin) {
+                return session.user.id;
+            }
+            else {
+                return -1;
             }
         };
 
@@ -418,115 +450,84 @@ module.exports = function (debug) {
                 callback = documentid;
                 documentid = undefined;
             }
-            this.GetUserFromSession(session, function (match, user) {
-                if (!match) {
-                    callback(false, 'User not logged in');
-                    return;
-                }
-                if (user.id !== userid) {
-                    callback(false, "User id's not the same");
-                    return;
-                }
-                if (documentid !== undefined) {
-                    rawUpload(documentid, original, data.stream, callback);
-                }
-                else {
-                    createDocument(data.filename, user.id, data.date, function (success, id) {
-                        if (!success) {
-                            callback(false, id);
-                            return;
-                        }
-                        rawUpload(id, original, data.stream, callback);
-                    });
-                }
-            });
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            if (documentid !== undefined) {
+                rawUpload(documentid, original, data.stream, callback);
+            }
+            else {
+                createDocument(data.filename, user.id, data.date, function (success, id) {
+                    if (!success) {
+                        callback(false, id);
+                        return;
+                    }
+                    rawUpload(id, original, data.stream, callback);
+                });
+            }
         };
 
         this.Download = function (session, userid, fileid, callback) {
-            this.GetUserFromSession(session, function (match, user) {
-                if (!match) {
-                    callback(false, 'User not logged in');
-                    return;
-                }
-                if (user.id !== userid) {
-                    callback(false, "User id's not the same");
-                    return;
-                }
-                db.MatchObject(sql, 'files', { "id": fileid }, function (match, recordset) {
-                    if (match) {
-                        var documentid = recordset[0].document;
-                        this.getDocument({ "document": documentid, "userid": user.id }, function (match) {
-                            if (match) {
-                                var stream = blobSvc.CreateReadStream('paperless', fileid + '.blob');
-                                callback(true, stream);
-                                return;
-                            }
-                            callback(false, "No download available");
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            db.MatchObject(sql, 'files', { "id": fileid }, function (match, recordset) {
+                if (match) {
+                    var documentid = recordset[0].document;
+                    this.getDocument({ "document": documentid, "userid": user.id }, function (match) {
+                        if (match) {
+                            var stream = blobSvc.CreateReadStream('paperless', fileid + '.blob');
+                            callback(true, stream);
                             return;
-                        });
-                    }
-                    else {
+                        }
                         callback(false, "No download available");
                         return;
-                    }
-                });
+                    });
+                }
+                else {
+                    callback(false, "No download available");
+                    return;
+                }
             });
         };
 
         this.GetDocuments = function (session, userid, filter, callback) {
-            this.GetUserFromSession(session, function (match, user) {
-                filter = filter || {};
-                if (!match) {
-                    callback(false, 'User not logged in');
-                    return;
-                }
-                if (user.id !== userid) {
-                    callback(false, "User id's not the same");
-                    return;
-                }
-                filter.userid = user.id;
-                getDocument(filter, callback);
-            });
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            filter = filter || {};
+            filter.userid = user.id;
+            getDocument(filter, callback);
         };
 
         this.GetDetailDocument = function (session, userid, documentid, callback) {
-            this.GetUserFromSession(session, function (match, user) {
-                filter = filter || {};
-                if (!match) {
-                    callback(false, 'User not logged in');
-                    return;
-                }
-                if (user.id !== userid) {
-                    callback(false, "User id's not the same");
-                    return;
-                }
-                GetDetailDocument(userid, documentid, callback);
-            });
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            GetDetailDocument(userid, documentid, callback);
         };
 
         this.GetFiles = function (session, userid, documentid, callback) {
-            this.GetUserFromSession(session, function (match, user) {
-                if (!match) {
-                    callback(false, 'User not logged in');
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            var filter = {
+                "userid": user.id,
+                "documentid": documentid
+            };
+            this.getDocument(filter, function (match) {
+                if (match) {
+                    db.MatchObject(sql, 'files', { "document": documentid }, callback);
+                }
+                else {
+                    callback(false, "No files available");
                     return;
                 }
-                if (user.id !== userid) {
-                    callback(false, "User id's not the same");
-                    return;
-                }
-                var filter = {
-                    "userid": user.id,
-                    "documentid": documentid
-                };
-                this.getDocument(filter, function (match) {
-                    if (match) {
-                        db.MatchObject(sql, 'files', { "document": documentid }, callback);
-                    }
-                    else {
-                        callback(false, "No files available");
-                        return;
-                    }
-                });
             });
         };
     };

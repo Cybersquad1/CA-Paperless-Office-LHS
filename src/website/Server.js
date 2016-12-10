@@ -254,18 +254,31 @@ UserHandler.Init(app, function (err) {
         UserHandler.GetDetailDocument(req.session, req.body.userid, req.body.document, function (match, result) {
             var response;
             if (match) {
-                response = {
-                    "match": match,
-                    "document": result[0]
-                };
+                UserHandler.GetTags(req.session, req.body.userid, undefined, function (m, rs) {
+                    if (m) {
+                        response = {
+                            "match": match,
+                            "document": result[0],
+                            "tags": rs
+                        };
+                    }
+                    else {
+                        response = {
+                            "match": match,
+                            "document": result[0],
+                            "tags": []
+                        };
+                    }
+                    res.json(response);
+                });
             }
             else {
                 response = {
                     "match": match,
                     "error": result
                 };
+                res.json(response);
             }
-            res.json(response);
         });
     });
 
