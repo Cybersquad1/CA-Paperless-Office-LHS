@@ -204,6 +204,18 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         $http.post("/getdocuments", { "userid": $scope.user.id, "filter": $scope.filter }).then(function (response) {
             if (response.data.match) {
                 $scope.userfiles = $scope.userfiles.concat(response.data.documents);
+                for (var i = 0; i < $scope.userfiles.length; i++) {
+                    if ($scope.userfiles[i].formateddate != undefined) {
+                        var formatdate;
+                        if ($scope.userfiles[i].date != null) {
+                            var date = new Date($scope.userfiles[i].date);
+                            formatdate = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear() + " " + date.getHours() + ":" + date.getMinutes();
+                        } else {
+                            formatdate = null;
+                        }
+                        $scope.userfiles[i].formateddate = formatdate;
+                    }
+                }
                 console.log(response.data.documents);
             }
         });
