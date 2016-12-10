@@ -250,6 +250,25 @@ UserHandler.Init(app, function (err) {
         });
     });
 
+    app.post('/getdetaildocument', function (req, res) {
+        UserHandler.GetDetailDocument(req.session, req.body.userid, req.body.document, function (match, result) {
+            var response;
+            if (match) {
+                response = {
+                    "match": match,
+                    "document": result[0]
+                };
+            }
+            else {
+                response = {
+                    "match": match,
+                    "error": result
+                };
+            }
+            res.json(response);
+        });
+    });
+
     app.get('/getfiles', function (req, res) {
         UserHandler.GetFiles(req.session, req.body.userid, req.body.documentid, function (match, result) {
             var response;

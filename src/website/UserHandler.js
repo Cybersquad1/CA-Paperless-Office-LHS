@@ -72,7 +72,6 @@ module.exports = function (debug) {
         }
 
         function CheckDocumentTable() {
-            // TODO: check the table
             db.Exists(sql,
                 'documents',
                 'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid INT, date DATETIME, content varchar(1000));', undefined,
@@ -179,7 +178,7 @@ module.exports = function (debug) {
 
         function getDocument(object, callback) {
             var row = object.row || 0;
-            var options = { "sort": 'id', "limit": { "low": (row - 1) * 20, "high": row * 20 }, "join": [], "equals": [], "like": [], "between": [], "distinct": true, "select": "documents.*", "table": "documents", "sort": "documents.id" };
+            var options = { "sort": 'id', "limit": { "low": (row - 1) * 20, "high": row * 20 }, "join": [], "equals": [], "like": [], "between": [], "distinct": true, "select": "documents.date,documents.id,documents.name", "table": "documents", "sort": "documents.id" };
             if (object.userid) {
                 options.equals.push({ "userid": object.userid });
             }
@@ -192,7 +191,7 @@ module.exports = function (debug) {
                 options.equals.push({ "tag": object.tag });
             }
             if (object.date) {
-                options.between.push({"date":[new Date(object.date.from), new Date(object.date.to)]});
+                options.between.push({ "date": [new Date(object.date.from), new Date(object.date.to)] });
             }
             if (object.content) {
                 options.like.push({ "content": object.content });
@@ -205,6 +204,7 @@ module.exports = function (debug) {
                 var length = recordset.length;
                 var done = 0;
                 for (let i = 0; i < length; i++) {
+                    delete recordset[i].RowNumber;
                     GetTags(recordset[i].id, function (mmm, rs) {
                         if (mmm) {
                             recordset[i].tags = rs;
@@ -219,8 +219,25 @@ module.exports = function (debug) {
                         }
                     });
                 }
-                //callback(true, recordset);
-                //return;
+            });
+        }
+
+        function GetDetailDocument(userid, documentid, callback) {
+            db.QueryObject(sql, { "equals": { "userid": userid, "documentid": documentid }, "select": "documents.*", "table": "documents" }, function (match, recordset) {
+                if (!match || recordset.length !== 1) {
+                    callback(false, "Data not found");
+                    return;
+                }
+                GetTags(recordset[0].id, function (mmm, rs) {
+                    if (mmm) {
+                        recordset[0].tags = rs;
+                    }
+                    else {
+                        recordset[0].tags = [];
+                    }
+                    callback(true, recordset);
+                    return;
+                });
             });
         }
 
@@ -469,6 +486,21 @@ module.exports = function (debug) {
                 }
                 filter.userid = user.id;
                 getDocument(filter, callback);
+            });
+        };
+
+        this.GetDetailDocument = function (session, userid, documentid, callback) {
+            this.GetUserFromSession(session, function (match, user) {
+                filter = filter || {};
+                if (!match) {
+                    callback(false, 'User not logged in');
+                    return;
+                }
+                if (user.id !== userid) {
+                    callback(false, "User id's not the same");
+                    return;
+                }
+                GetDetailDocument(userid, documentid, callback);
             });
         };
 
