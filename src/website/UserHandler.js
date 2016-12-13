@@ -14,6 +14,8 @@ var azure = require('azure-storage');
 var azureconfig = require('./azure.json');
 var blobSvc = azure.createBlobService(azureconfig.connectionstring);
 var crypto = require('crypto');
+var request = require('request');
+var apikey = require('./ApiKey.json');
 
 /**
  * @constructor
@@ -537,6 +539,73 @@ module.exports = function (debug) {
                     return;
                 }
             });
+        };
+
+        this.GenerateThumbnail = function (stream, callback) {
+            request({
+                method: 'POST',
+                url: 'https://api.projectoxford.ai/vision/v1.0/generateThumbnail?width=500&height=500&smartCropping=true',
+                headers: {
+                    'Content-type': 'application/octet-stream',
+                    'Ocp-Apim-Subscription-Key': apikey.api_key_cv
+                },
+                body: stream
+            }, function (error, response, result) {
+                if (!error && response.statusCode === 200) {
+                    //var buffer = Buffer.from(result);
+                    //Image upload naar database
+                }
+                else {
+                    callback(false, "Generating thumbnail failed");
+                    return;
+                }
+            });
+        };
+
+        this.GenerateKeywords = function (stream, callback) {
+            request({
+                method: 'POST',
+                url: 'https://api.projectoxford.ai/vision/v1.0/ocr?language=en&detectOrientation=true',
+                headers: {
+                    'Content-type': 'application/octet-stream',
+                    'Ocp-Apim-Subscription-Key': apikey.api_key_cv
+                },
+                body: stream
+            }, function (error, response, result) {
+                console.log(result);
+                if (!error && response.statusCode === 200) {
+                    request({
+                        method: 'POST',
+                        url: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/keyPhrases',
+                        headers: {
+                            'Content-type': 'application/json',
+                            'Ocp-Apim-Subscription-Key': apikey.api_key_text
+                        },
+                        body: JSON.stringify({
+                            "documents": [
+                                {
+                                    "language": "en",
+                                    "id": "1",
+                                    "text": result.getalltext() //check what result is
+                                }
+                            ]
+                        })
+                    }, function (error, response, result) {
+                        if (!error && response.statusCode === 200) {
+                            console.log(result);
+                        }
+                        else {
+                            callback(false, "Failed to generate keywords");
+                            return;
+                        }
+                    });
+                }
+                else {
+                    callback(false, "Invalid file type");
+                    return;
+                }
+            }
+            )
         };
     };
     return this;
