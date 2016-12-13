@@ -189,13 +189,21 @@ module.exports = function (debug) {
             GetTags(userid, documentid, callback);
         }
 
-        function AddTag(userid, tag, callback) {
-            var insert = {
-                tag: tag.tag,
-                color: tag.color,
-                userid: userid
+        function AddTag(name, color, userid, callback) {
+            var tag = {
+                "tag": name,
+                "color": color,
+                "userid": userid
+            };
+            db.QueryObject(sql, { "insert": tag }, callback);
+        }
+
+        this.AddTag = function (session, name, color, userid, callback) {
+            if (GetIdFromSession(userid) != userid) {
+                callback(false, "User id's not the same");
+                return;
             }
-            db.QueryObject(sql, { "insert": insert, "inserted": "id" }, callback);
+            AddTag(name, color, userid, callback);
         }
 
         function getDocument(object, callback) {
@@ -458,7 +466,7 @@ module.exports = function (debug) {
                 rawUpload(documentid, original, data.stream, callback);
             }
             else {
-                createDocument(data.filename, user.id, data.date, function (success, id) {
+                createDocument(data.filename, userid, data.date, function (success, id) {
                     if (!success) {
                         callback(false, id);
                         return;
@@ -476,7 +484,7 @@ module.exports = function (debug) {
             db.MatchObject(sql, 'files', { "id": fileid }, function (match, recordset) {
                 if (match) {
                     var documentid = recordset[0].document;
-                    this.getDocument({ "document": documentid, "userid": user.id }, function (match) {
+                    this.getDocument({ "document": documentid, "userid": userid }, function (match) {
                         if (match) {
                             var stream = blobSvc.CreateReadStream('paperless', fileid + '.blob');
                             callback(true, stream);
@@ -517,7 +525,7 @@ module.exports = function (debug) {
                 return;
             }
             var filter = {
-                "userid": user.id,
+                "userid": userid,
                 "documentid": documentid
             };
             this.getDocument(filter, function (match) {
