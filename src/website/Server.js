@@ -187,21 +187,53 @@ UserHandler.Init(app, function (err) {
 
             request({
                 method: 'POST',
-                url: 'https://api.projectoxford.ai/vision/v1.0/generateThumbnail?width=500&height=500&smartCropping=true',
+                url: 'https://api.projectoxford.ai/vision/v1.0/ocr?language=en&detectOrientation=true',
                 headers: {
                     'Content-type': 'application/octet-stream',
                     'Ocp-Apim-Subscription-Key': apikey.api_key_cv
                 },
                 body: str
             }, function (error, response, result) {
-                if (!error && response.statusCode == 200) {
-                    //Afbeelding nog doorgeven, ipv weer te geven in tekst
-                    console.log(result);
+                console.log(result);
+                if (!error && response.statusCode === 200) {
+                    //3 for loops
+                    var jsondata = JSON.parse(result);
+                    
+                    request({
+                        method: 'POST',
+                        url: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/keyPhrases',
+                        headers: {
+                            'Content-type': 'application/json',
+                            'Ocp-Apim-Subscription-Key': apikey.api_key_text
+                        },
+                        body: JSON.stringify({
+                            "documents": [
+                                {
+                                    "language": "en",
+                                    "id": "1",
+                                    "text": JSON.parse(result)
+                                }
+                            ]
+                        })
+                    }, function (error, response, result) {
+                        if (!error && response.statusCode === 200) {
+                            console.log(result);
+                        }
+                        else {
+                            callback(false, "Failed to generate keywords");
+                            return;
+                        }
+                    });
                 }
-            });
+                else {
+                    callback(false, "Invalid file type");
+                    return;
+                }
+            }
+            )
 
             //Nog aan te passen (text uit afbeelding halen werkt, keyPhrases nog niet)
-            api.fromStream({ data: str }, function (error, response, result) {
+            /*api.fromStream({ data: str }, function (error, response, result) {
                 console.log(result.getAllText());
                 if (!error && response.statusCode == 200) {
                     request({
@@ -211,15 +243,15 @@ UserHandler.Init(app, function (err) {
                             'Content-type': 'application/json',
                             'Ocp-Apim-Subscription-Key': apikey.api_key_text
                         },
-                        body: {
+                        body: JSON.stringify({
                             "documents": [
                                 {
-                                    "language": "unk",
+                                    "language": "en",
                                     "id": "1",
                                     "text": JSON.stringify(result.getAllText())
                                 }
                             ]
-                        }
+                        })
                     }, function (error, response, result) {
                         if (!error && response.statusCode == 200) {
                             console.log(result);
@@ -227,7 +259,7 @@ UserHandler.Init(app, function (err) {
                     });
                 }
 
-            });
+            });*/
         });
     });
 
