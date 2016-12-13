@@ -14,6 +14,8 @@ var azure = require('azure-storage');
 var azureconfig = require('./azure.json');
 var blobSvc = azure.createBlobService(azureconfig.connectionstring);
 var crypto = require('crypto');
+var request = require('request');
+var apikey = require('./ApiKey.json');
 
 /**
  * @constructor
@@ -172,7 +174,7 @@ module.exports = function (debug) {
         }
 
         function GetTags(userid, documentid, callback) {
-            var options = { "select": "tag, color", "table": "tags", "equals": [{ "userid": userid }] };
+            var options = { "select": "*", "table": "tags", "equals": [{ "userid": userid }] };
             if (documentid) {
                 options.join = { "table": "linked", "on": ["tags.id", "linked.tagid"] };
                 options.equals.push({ "documentid": documentid });
@@ -189,13 +191,37 @@ module.exports = function (debug) {
             GetTags(userid, documentid, callback);
         }
 
-        function AddTag(userid, tag, callback) {
-            var insert = {
-                tag: tag.tag,
-                color: tag.color,
-                userid: userid
+        function AddTag(name, color, userid, callback) {
+            var tag = {
+                "tag": name,
+                "color": color,
+                "userid": userid
+            };
+            db.QueryObject(sql, { "insert": tag, "table": "tags" }, callback);
+        }
+
+        this.AddTag = function (session, name, color, userid, callback) {
+            if (GetIdFromSession(userid) != userid) {
+                callback(false, "User id's not the same");
+                return;
             }
-            db.QueryObject(sql, { "insert": insert, "inserted": "id" }, callback);
+            AddTag(name, color, userid, callback);
+        }
+
+        function AddTagToDocument(documentid, tagid, callback) {
+            var tag = {
+                "documentid": documentid,
+                "tagid": tagid
+            };
+            db.QueryObject(sql, { "insert": tag, "table": "linked" }, callback);
+        }
+
+        this.AddTagToDocument = function (session, documentid, tagid, userid, callback) {
+            if (GetIdFromSession(userid) != userid) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            AddTagToDocument(documentid, tagid, callback);
         }
 
         function getDocument(object, callback) {
@@ -458,7 +484,7 @@ module.exports = function (debug) {
                 rawUpload(documentid, original, data.stream, callback);
             }
             else {
-                createDocument(data.filename, user.id, data.date, function (success, id) {
+                createDocument(data.filename, userid, data.date, function (success, id) {
                     if (!success) {
                         callback(false, id);
                         return;
@@ -476,7 +502,7 @@ module.exports = function (debug) {
             db.MatchObject(sql, 'files', { "id": fileid }, function (match, recordset) {
                 if (match) {
                     var documentid = recordset[0].document;
-                    this.getDocument({ "document": documentid, "userid": user.id }, function (match) {
+                    this.getDocument({ "document": documentid, "userid": userid }, function (match) {
                         if (match) {
                             var stream = blobSvc.CreateReadStream('paperless', fileid + '.blob');
                             callback(true, stream);
@@ -517,7 +543,7 @@ module.exports = function (debug) {
                 return;
             }
             var filter = {
-                "userid": user.id,
+                "userid": userid,
                 "documentid": documentid
             };
             this.getDocument(filter, function (match) {
@@ -529,6 +555,73 @@ module.exports = function (debug) {
                     return;
                 }
             });
+        };
+
+        this.GenerateThumbnail = function (stream, callback) {
+            request({
+                method: 'POST',
+                url: 'https://api.projectoxford.ai/vision/v1.0/generateThumbnail?width=500&height=500&smartCropping=true',
+                headers: {
+                    'Content-type': 'application/octet-stream',
+                    'Ocp-Apim-Subscription-Key': apikey.api_key_cv
+                },
+                body: stream
+            }, function (error, response, result) {
+                if (!error && response.statusCode === 200) {
+                    //var buffer = Buffer.from(result);
+                    //Image upload naar database
+                }
+                else {
+                    callback(false, "Generating thumbnail failed");
+                    return;
+                }
+            });
+        };
+
+        this.GenerateKeywords = function (stream, callback) {
+            request({
+                method: 'POST',
+                url: 'https://api.projectoxford.ai/vision/v1.0/ocr?language=en&detectOrientation=true',
+                headers: {
+                    'Content-type': 'application/octet-stream',
+                    'Ocp-Apim-Subscription-Key': apikey.api_key_cv
+                },
+                body: stream
+            }, function (error, response, result) {
+                console.log(result);
+                if (!error && response.statusCode === 200) {
+                    request({
+                        method: 'POST',
+                        url: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/keyPhrases',
+                        headers: {
+                            'Content-type': 'application/json',
+                            'Ocp-Apim-Subscription-Key': apikey.api_key_text
+                        },
+                        body: JSON.stringify({
+                            "documents": [
+                                {
+                                    "language": "en",
+                                    "id": "1",
+                                    "text": result.getalltext() //check what result is
+                                }
+                            ]
+                        })
+                    }, function (error, response, result) {
+                        if (!error && response.statusCode === 200) {
+                            console.log(result);
+                        }
+                        else {
+                            callback(false, "Failed to generate keywords");
+                            return;
+                        }
+                    });
+                }
+                else {
+                    callback(false, "Invalid file type");
+                    return;
+                }
+            }
+            )
         };
     };
     return this;
