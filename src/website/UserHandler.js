@@ -470,6 +470,7 @@ module.exports = function (debug) {
         // upload types
         var original = 1;
         var imagepage = 2;
+        var thumbnail = 3;
 
         this.Upload = function (session, data, userid, documentid, callback) {
             if (callback === undefined) {
@@ -557,7 +558,7 @@ module.exports = function (debug) {
             });
         };
 
-        this.GenerateThumbnail = function (stream, callback) {
+        function GenerateThumbnail(documentid, stream, callback) {
             request({
                 method: 'POST',
                 url: 'https://api.projectoxford.ai/vision/v1.0/generateThumbnail?width=500&height=500&smartCropping=true',
@@ -568,8 +569,9 @@ module.exports = function (debug) {
                 body: stream
             }, function (error, response, result) {
                 if (!error && response.statusCode === 200) {
-                    //var buffer = Buffer.from(result);
+                    var buf = Buffer.from(result);
                     //Image upload naar database
+                    rawUpload(documentid, thumbnail, buf, callback)
                 }
                 else {
                     callback(false, "Generating thumbnail failed");
@@ -578,7 +580,7 @@ module.exports = function (debug) {
             });
         };
 
-        this.GenerateKeywords = function (stream, callback) {
+        function GenerateKeywords(stream, callback) {
             request({
                 method: 'POST',
                 url: 'https://api.projectoxford.ai/vision/v1.0/ocr?language=en&detectOrientation=true',
