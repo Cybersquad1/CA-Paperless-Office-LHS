@@ -172,7 +172,7 @@ module.exports = function (debug) {
         }
 
         function GetTags(userid, documentid, callback) {
-            var options = { "select": "tag, color", "table": "tags", "equals": [{ "userid": userid }] };
+            var options = { "select": "*", "table": "tags", "equals": [{ "userid": userid }] };
             if (documentid) {
                 options.join = { "table": "linked", "on": ["tags.id", "linked.tagid"] };
                 options.equals.push({ "documentid": documentid });
@@ -195,7 +195,7 @@ module.exports = function (debug) {
                 "color": color,
                 "userid": userid
             };
-            db.QueryObject(sql, { "insert": tag }, callback);
+            db.QueryObject(sql, { "insert": tag, "table": "tags" }, callback);
         }
 
         this.AddTag = function (session, name, color, userid, callback) {
@@ -204,6 +204,22 @@ module.exports = function (debug) {
                 return;
             }
             AddTag(name, color, userid, callback);
+        }
+
+        function AddTagToDocument(documentid, tagid, callback) {
+            var tag = {
+                "documentid": documentid,
+                "tagid": tagid
+            };
+            db.QueryObject(sql, { "insert": tag, "table": "linked" }, callback);
+        }
+
+        this.AddTagToDocument = function (session, documentid, tagid, userid, callback) {
+            if (GetIdFromSession(userid) != userid) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            AddTagToDocument(documentid, tagid, callback);
         }
 
         function getDocument(object, callback) {

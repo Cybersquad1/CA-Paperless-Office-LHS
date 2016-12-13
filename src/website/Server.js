@@ -282,6 +282,24 @@ UserHandler.Init(app, function (err) {
         });
     });
 
+    app.post('/addtag', function (req, res) {
+        UserHandler.AddTag(req.session, req.body.name, req.body.color, req.body.userid, function (match, result) {
+            res.json({
+                "match": match,
+                "error": result
+            });
+        });
+    });
+
+    app.post('/addtagtodocument', function (req, res) {
+        UserHandler.AddTagToDocument(req.session, req.body.document, req.body.tag, req.body.userid, function (match, result) {
+            res.json({
+                "match": match,
+                "error": result
+            });
+        });
+    });
+
     app.get('/getfiles', function (req, res) {
         UserHandler.GetFiles(req.session, req.body.userid, req.body.documentid, function (match, result) {
             var response;
