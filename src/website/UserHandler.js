@@ -499,7 +499,7 @@ module.exports = function (debug) {
                 return;
             }
             filter = filter || {};
-            filter.userid = user.id;
+            filter.userid = userid;
             getDocument(filter, callback);
         };
 
