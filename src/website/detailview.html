@@ -55,6 +55,7 @@
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav navbar-right">
 						<li><a href="index.html">Home</a></li>
+                        <li><a href="Paymentplan.html">Paymentplan</a></li>
 						<li><a href="FileOverview.html">FileOverview</a></li>
 						<li class="active"><a href="#">Detailview</a></li>
 						<li><a>Welcome, {{user.username}}</a></li>
@@ -141,8 +142,8 @@
 					<div class="modal-body" style="padding: 3em;">
 						<div class="row">
 							<ul class="nav nav-tabs">
-								<li class="active"><a href="#generictags-form" data-toggle="tab">generic</a></li>
-								<li><a href="#costumtags-form" data-toggle="tab">custom</a></li>
+								<li class="active"><a href="#generictags-form" data-toggle="tab">tags</a></li>
+								<li><a href="#costumtags-form" data-toggle="tab">new tag</a></li>
 							</ul>
 							<div class="tab-content">
 								<div class="tab-pane active" id="generictags-form">
@@ -173,7 +174,7 @@
 										</div>
 										<br/>
 										<div id="uploadwarnings"></div>
-										<button class="btn btn-success" type="button" ng-click="makeCostumTag()">Make costum tag</button>
+										<button class="btn btn-success" type="button" ng-click="makeTag()">Make tag</button>
 									</form>
 								</div>
 
@@ -218,7 +219,7 @@
 					</div>
 				</div>
 			</div>
-			<button class="btn btn-default" style="position:absolute;right:10px;bottom:0px;" data-toggle="modal" data-target="#addtagModal">add Tag</button>
+			<button class="btn btn-default" style="float:right;margin-top:2%;margin-right:15px" data-toggle="modal" data-target="#addtagModal">add Tag</button>
 		</div>
 
 		<div class="container suggestiondiv" style="">

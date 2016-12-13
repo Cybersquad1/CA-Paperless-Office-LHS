@@ -244,17 +244,8 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                     var searchparse = JSON.parse('{"' + decodeURI(searchresult).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
                     if (searchparse.id) {
                         console.log(searchparse.id);
-                        $http.post("/getdetaildocument", { "userid": $scope.user.id, "document": searchparse.id }).then(function (res) {
-                            console.log(res);
-                            if (res.data.error) {
-                                console.log(res.data.error);
-                                return;
-                            }
-                            $scope.detailfile = res.data.document;
-                            $scope.detailfile.tags = $scope.detailfile.tags || [];
-                            $scope.usertags = res.data.tags || [];
-                            FormatDate($scope.detailfile);
-                        });
+                        $scope.detailviewId = searchparse.id;
+                        detailviewchange();
                     }
                 }
                 else if ($scope.file === "FileOverview") {
@@ -265,6 +256,20 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                     LoadMoreFiles();
                 }
             }
+        });
+    }
+
+    function detailviewchange() {
+        $http.post("/getdetaildocument", { "userid": $scope.user.id, "document": $scope.detailviewId }).then(function (res) {
+            console.log(res);
+            if (res.data.error) {
+                console.log(res.data.error);
+                return;
+            }
+            $scope.detailfile = res.data.document;
+            $scope.detailfile.tags = $scope.detailfile.tags || [];
+            $scope.usertags = res.data.tags || [];
+            FormatDate($scope.detailfile);
         });
     }
 
@@ -352,9 +357,13 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             }
         }*/
         $scope.detailfile.tags.push(clickedtag);
+        $http.post('/addtagtodocument', { "document": $scope.detailviewId, "tag": clickedtag.id, "userid": $scope.user.id }).then(function (response) {
+            //console.log(response);
+            detailviewchange();
+        });
     }
 
-    $scope.makeCostumTag = function () {
+    $scope.makeTag = function () {
         var tagCheck = CheckTag($scope.costumtagname);
         if (tagCheck !== undefined) {
             //todo showing error message
@@ -363,7 +372,11 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             var costumTag = { "name": $scope.costumtagname, "color": $scope.costumtagcolor };
             console.log("new tag is:");
             console.log(costumTag);
-            $scope.usertags.push(costumTag); //todo needs to be changed to an apicall with a detailfile as return value
+            // $scope.usertags.push(costumTag); //todo needs to be changed to an apicall with a detailfile as return value
+            $http.post('/addtag', { "name": $scope.costumtagname, "color": $scope.costumtagcolor, "userid": $scope.user.id }).then(function (response) {
+                //console.log(response);
+                detailviewchange();
+            });
         }
     };
 
