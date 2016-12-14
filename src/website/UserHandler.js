@@ -571,6 +571,7 @@ module.exports = function (debug) {
                 if (!error && response.statusCode === 200) {
                     var buf = Buffer.from(result);
                     //Image upload naar database
+                    buf.originalFilename = "thumbnail.jpg";
                     rawUpload(documentid, thumbnail, buf, callback)
                 }
                 else {
@@ -592,31 +593,52 @@ module.exports = function (debug) {
             }, function (error, response, result) {
                 console.log(result);
                 if (!error && response.statusCode === 200) {
-                    request({
-                        method: 'POST',
-                        url: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/keyPhrases',
-                        headers: {
-                            'Content-type': 'application/json',
-                            'Ocp-Apim-Subscription-Key': apikey.api_key_text
-                        },
-                        body: JSON.stringify({
-                            "documents": [
-                                {
-                                    "language": "en",
-                                    "id": "1",
-                                    "text": result.getalltext() //check what result is
+                    var jsondata = JSON.parse(result);
+                    var text = [];
+                    for (var i = 0; i < jsondata.regions.length; i++) {
+                        for (var o = 0; o < jsondata.regions[i].lines.length; o++) {
+                            for (var p = 0; p < jsondata.regions[i].lines[o].words.length; p++) {
+                                text.push(jsondata.regions[i].lines[o].words[p].text);
+                            }
+                            text[text.length - 1] += '.';
+                        }
+                    }
+                    text = text.join(' ');
+                    if (text.length > 0) {
+                        request({
+                            method: 'POST',
+                            url: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/keyPhrases',
+                            headers: {
+                                'Content-type': 'application/json',
+                                'Ocp-Apim-Subscription-Key': apikey.api_key_text
+                            },
+                            body: JSON.stringify({
+                                "documents": [
+                                    {
+                                        "language": "en",
+                                        "id": "1",
+                                        "text": text
+                                    }
+                                ]
+                            })
+                        }, function (error, response, result) {
+                            if (!error && response.statusCode === 200) {
+                                var res = JSON.parse(result);
+                                var finaltext = [];
+                                for (var i = 0; i < res.documents.length; i++) {
+                                    for (var o = 0; o < res.documents[i].keyPhrases.length; o++) {
+                                        finaltext.push(res.documents[i].keyPhrases[o]);
+                                    }
                                 }
-                            ]
-                        })
-                    }, function (error, response, result) {
-                        if (!error && response.statusCode === 200) {
-                            console.log(result);
-                        }
-                        else {
-                            callback(false, "Failed to generate keywords");
-                            return;
-                        }
-                    });
+                                finaltext = finaltext.join(' ');
+                                console.log(finaltext);
+                            }
+                            else {
+                                callback(false, "Failed to generate keywords");
+                                return;
+                            }
+                        });
+                    }
                 }
                 else {
                     callback(false, "Invalid file type");
