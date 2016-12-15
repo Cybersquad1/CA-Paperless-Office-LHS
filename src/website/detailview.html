@@ -55,7 +55,7 @@
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav navbar-right">
 						<li><a href="index.html">Home</a></li>
-                        <li><a href="Paymentplan.html">Paymentplan</a></li>
+						<li><a href="Paymentplan.html">Paymentplan</a></li>
 						<li><a href="FileOverview.html">FileOverview</a></li>
 						<li class="active"><a href="#">Detailview</a></li>
 						<li><a>Welcome, {{user.username}}</a></li>
@@ -194,12 +194,17 @@
 			<div>
 				<img class="preview col-md-6 col-sm-12" src="{{detailfile.url}}">
 				<div class="col-md-6">
-					<div>
-						<h3 class="" style="float:left">{{detailfile.name}}</h3>
-						<button class="downloadbutton btn btn-default" style="float:right"> 
+					<h3 class="" style="float:left">{{detailfile.name}}</h3>
+					<div class="dropdown" style="float: right">
+						<div>
+							<button class="downloadbutton btn btn-default dropdown-toggle" data-toggle="dropdown"> 
 							Download
 							<span class=" glyphicon glyphicon-download" aria-hidden="true"></span>
 						</button>
+							<ul class="dropdown-menu">
+								<li ng-repeat="x in downloadfiles">{{x.name}}</li>
+							</ul>
+						</div>
 					</div>
 					<div style="clear:both;">
 						<h4>Date: {{detailfile.formateddate}} </h4>
@@ -214,7 +219,7 @@
 							<div class="tagdiv" ng-repeat="tag in detailfile.tags">
 								<h3><span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.tag}}</span></h3>
 							</div>
-	
+
 						</div>
 					</div>
 				</div>

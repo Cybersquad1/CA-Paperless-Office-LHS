@@ -145,6 +145,7 @@ module.exports = function () {
             for (var i = 0; i < equals.length; i++) {
                 var operator = equals[i].op || "AND";
                 for (var key in equals[i]) {
+                    var name = key.replace(".", "");
                     if (first) {
                         first = false;
                         query.push("WHERE");
@@ -152,8 +153,8 @@ module.exports = function () {
                     else {
                         query.push(operator);
                     }
-                    query.push(key + " = @" + key);
-                    vars[key] = equals[i][key];
+                    query.push(key + " = @" + name);
+                    vars[name] = equals[i][key];
                 }
             }
         }

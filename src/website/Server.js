@@ -225,7 +225,10 @@ UserHandler.Init(app, function (err) {
                             "tags": []
                         };
                     }
-                    res.json(response);
+                    UserHandler.GetFiles(req.session, req.body.userid, req.body.document, function (ma, r) {
+                        response.files= r;
+                        res.json(response);
+                    });
                 });
             }
             else {
@@ -233,7 +236,6 @@ UserHandler.Init(app, function (err) {
                     "match": match,
                     "error": result
                 };
-                res.json(response);
             }
         });
     });
@@ -253,25 +255,6 @@ UserHandler.Init(app, function (err) {
                 "match": match,
                 "error": result
             });
-        });
-    });
-
-    app.get('/getfiles', function (req, res) {
-        UserHandler.GetFiles(req.session, req.body.userid, req.body.documentid, function (match, result) {
-            var response;
-            if (match) {
-                response = {
-                    "match": match,
-                    "files": result
-                };
-            }
-            else {
-                response = {
-                    "match": match,
-                    "error": result
-                };
-            }
-            res.json(response);
         });
     });
 
