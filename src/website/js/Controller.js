@@ -271,6 +271,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             $scope.detailfile.tags = $scope.detailfile.tags || [];
             $scope.usertags = res.data.tags || [];
             FormatDate($scope.detailfile);
+            $scope.downloadfiles = res.data.files;
         });
     }
 

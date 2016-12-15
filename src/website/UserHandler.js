@@ -546,18 +546,12 @@ module.exports = function (debug) {
                 callback(false, "User id's not the same");
                 return;
             }
-            var filter = {
-                "userid": userid,
-                "documentid": documentid
-            };
-            this.getDocument(filter, function (match) {
-                if (match) {
-                    db.MatchObject(sql, 'files', { "document": documentid }, callback);
-                }
-                else {
-                    callback(false, "No files available");
+            db.QueryObject(sql, { "equals": { "userid": userid, "id": documentid }, "select": "documents.*", "table": "documents" }, function (match, recordset) {
+                if (!match || recordset.length !== 1) {
+                    callback(false, "Data not found");
                     return;
                 }
+                db.MatchObject(sql, 'files', { "document": documentid }, callback);
             });
         };
 
@@ -582,7 +576,7 @@ module.exports = function (debug) {
                     return;
                 }
             });
-        };
+        }
 
         function GenerateKeywords(documentid, stream, callback) {
             request({
@@ -657,7 +651,7 @@ module.exports = function (debug) {
                 }
             }
             )
-        };
+        }
     };
     return this;
 };
