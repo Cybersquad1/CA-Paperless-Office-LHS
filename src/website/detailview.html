@@ -202,7 +202,7 @@
 							<span class=" glyphicon glyphicon-download" aria-hidden="true"></span>
 						</button>
 							<ul class="dropdown-menu">
-								<li ng-repeat="x in downloadfiles">{{x.name}}</li>
+								<li ng-repeat="x in downloadfiles"><a href="/download?userid={{user.id}}&documentid={{detailfile.id}}&fileid={{x.id}}">{{x.name}}</a></li>
 							</ul>
 						</div>
 					</div>

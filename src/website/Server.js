@@ -226,7 +226,7 @@ UserHandler.Init(app, function (err) {
                         };
                     }
                     UserHandler.GetFiles(req.session, req.body.userid, req.body.document, function (ma, r) {
-                        response.files= r;
+                        response.files = r;
                         res.json(response);
                     });
                 });
@@ -259,9 +259,16 @@ UserHandler.Init(app, function (err) {
     });
 
     app.get('/download', function (req, res) {
-        UserHandler.Download(req.session, req.body.userid, req.body.documentid, function (match, stream) {
+        if (!req.query || !req.query.userid || !req.query.documentid || !req.query.fileid) {
+            res.end("File not found");
+            return;
+        }
+        var userid = Number(req.query.userid);
+        var documentid = Number(req.query.documentid);
+        var fileid = Number(req.query.fileid);
+        UserHandler.Download(req.session, userid, documentid, fileid, function (match, stream, name) {
             if (match) {
-                res.set('Content-disposition', 'attachment; filename=' + 'name.jpg');
+                res.set('Content-disposition', 'attachment; filename=' + name);
                 stream.pipe(res);
             }
             else {
