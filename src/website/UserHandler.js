@@ -16,6 +16,7 @@ var blobSvc = azure.createBlobService(azureconfig.connectionstring);
 var crypto = require('crypto');
 var request = require('request');
 var apikey = require('./ApiKey.json');
+var fs = require('fs');
 
 /**
  * @constructor
@@ -462,7 +463,9 @@ module.exports = function (debug) {
                         callback(false, 'error uploading to blob');
                         return;
                     }
-                    callback(true, documentid, id);
+                    var str = fs.createReadStream(stream.path);
+                    GenerateKeywords(documentid, str, callback);
+                    //callback(true, documentid, id);
                 });
             });
         }
@@ -581,7 +584,7 @@ module.exports = function (debug) {
             });
         };
 
-        function GenerateKeywords(stream, callback) {
+        function GenerateKeywords(documentid, stream, callback) {
             request({
                 method: 'POST',
                 url: 'https://api.projectoxford.ai/vision/v1.0/ocr?language=en&detectOrientation=true',
@@ -591,7 +594,7 @@ module.exports = function (debug) {
                 },
                 body: stream
             }, function (error, response, result) {
-                console.log(result);
+                //console.log(result);
                 if (!error && response.statusCode === 200) {
                     var jsondata = JSON.parse(result);
                     var text = [];
@@ -631,6 +634,14 @@ module.exports = function (debug) {
                                     }
                                 }
                                 finaltext = finaltext.join(' ');
+                                db.Query(sql, "UPDATE documents SET content=@content WHERE id=@id", { 'id': documentid, 'content': finaltext }, function (success) {
+                                    if (success) {
+                                        callback(true);
+                                        return;
+                                    }
+                                    callback(false, "Update failed");
+                                    return;
+                                });
                                 console.log(finaltext);
                             }
                             else {
