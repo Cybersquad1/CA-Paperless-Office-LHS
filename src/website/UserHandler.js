@@ -291,6 +291,16 @@ module.exports = function (debug) {
             });
         }
 
+        function checkDocument(userid, documentid, callback) {
+            db.QueryObject(sql, { "equals": { "userid": userid, "id": documentid }, "select": "documents.*", "table": "documents" }, function (match, recordset) {
+                if (!match || recordset.length !== 1) {
+                    callback(false);
+                    return;
+                }
+                callback(true, recordset[0]);
+            });
+        }
+
         function createFile(document, type, name, size, callback) {
             var file = {
                 "document": document,
@@ -437,16 +447,17 @@ module.exports = function (debug) {
                         callback(false, "Email is already in use");
                         return;
                     }
-                    db.InsertObject(sql, 'users', user, function (success) {
+                    db.InsertObject(sql, 'users', user, function (success, result) {
                         if (!success) {
                             callback(false, "Database query failed");
                             return;
                         }
                         delete user.password;
                         delete user.salt;
+                        user.id = result[0].id;
                         callback(true, user);
                         return;
-                    });
+                    }, { "inserted": "id" });
                 });
             });
         };
@@ -498,28 +509,24 @@ module.exports = function (debug) {
             }
         };
 
-        this.Download = function (session, userid, fileid, callback) {
+        this.Download = function (session, userid, documentid, fileid, callback) {
             if (this.GetIdFromSession(session) !== userid || userid === -1) {
                 callback(false, "User id's not the same");
                 return;
             }
-            db.MatchObject(sql, 'files', { "id": fileid }, function (match, recordset) {
-                if (match) {
-                    var documentid = recordset[0].document;
-                    this.getDocument({ "document": documentid, "userid": userid }, function (match) {
-                        if (match) {
-                            var stream = blobSvc.CreateReadStream('paperless', fileid + '.blob');
-                            callback(true, stream);
-                            return;
-                        }
-                        callback(false, "No download available");
-                        return;
-                    });
-                }
-                else {
-                    callback(false, "No download available");
+            checkDocument(userid, documentid, function (m, d) {
+                if (!m) {
+                    callback(false, "document not from user");
                     return;
                 }
+                db.QueryObject(sql, { "equals": { "document": documentid, "id": fileid }, "select": "name", "table": "files" }, function (match, recordset) {
+                    if (!match || recordset.length !== 1) {
+                        callback(false, "File not found");
+                        return;
+                    }
+                    var stream = blobSvc.createReadStream('paperless', fileid + '.blob');
+                    callback(true, stream, recordset[0].name);
+                });
             });
         };
 
@@ -546,8 +553,8 @@ module.exports = function (debug) {
                 callback(false, "User id's not the same");
                 return;
             }
-            db.QueryObject(sql, { "equals": { "userid": userid, "id": documentid }, "select": "documents.*", "table": "documents" }, function (match, recordset) {
-                if (!match || recordset.length !== 1) {
+            checkDocument(userid, documentid, function (match) {
+                if (!match) {
                     callback(false, "Data not found");
                     return;
                 }
