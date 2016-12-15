@@ -330,8 +330,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         if ($scope.namefilterCheckbox) {
             currentfilter.name = $scope.namefilterText;
         }
-        if (
-            $scope.tagfilterCheckbox) {
+        if ($scope.tagfilterCheckbox) {
             currentfilter.tag = $scope.tagfilterText;
         }
         if ($scope.filtertimeoutrunning) {

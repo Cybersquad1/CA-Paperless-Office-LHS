@@ -231,7 +231,7 @@ module.exports = function (debug) {
             if (!object.userid) {
                 callback(false, "No userid");
             }
-            options.equals.push({ "userid": object.userid });
+            options.equals.push({ "documents.userid": object.userid });
             if (object.name) {
                 options.like.push({ "name": object.name });
             }
