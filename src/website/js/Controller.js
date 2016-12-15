@@ -214,7 +214,8 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     function LoadMoreFiles() {
         $scope.filter = $scope.filter || {};
-        $scope.filter.row = $scope.filter.row || 1;
+        $scope.filter.row = $scope.filter.row || 0;
+        $scope.filter.row++;
         $http.post("/getdocuments", { "userid": $scope.user.id, "filter": $scope.filter }).then(function (response) {
             if (response.data.match) {
                 $scope.userfiles = $scope.userfiles.concat(response.data.documents);
@@ -342,7 +343,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             $scope.filter = currentfilter;
             $scope.filtertimeoutrunning = false;
             $scope.userfiles = [];
-            $scope.fileoverviewrow = 1;
+            $scope.filter.row = 0;
             LoadMoreFiles();
         }, 2500);
     };
