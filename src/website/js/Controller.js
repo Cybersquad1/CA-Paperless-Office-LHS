@@ -370,6 +370,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             //todo showing error message
         }
         else {
+            $scope.costumtagcolor = $scope.costumtagcolor || "#000000";
             var costumTag = { "name": $scope.costumtagname, "color": $scope.costumtagcolor };
             console.log("new tag is:");
             console.log(costumTag);

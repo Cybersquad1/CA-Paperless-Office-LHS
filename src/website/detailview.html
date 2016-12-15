@@ -155,9 +155,9 @@
 										</div>-->
 										<table class="table" style="width:50%;">
 											<tbody>
-												<tr class="{{generictag.name}}" ng-repeat="generictag in usertags" ng-click="generictagclick(generictag)">
+												<tr class="{{generictag.tag}}" ng-repeat="generictag in usertags" ng-click="generictagclick(generictag)">
 													<td class="col-md-2"><span  ng-show="generictag.activated" class=" glyphicon glyphicon-ok" style="color:{{generictag.color}}" aria-hidden="true"></span> </td>
-													<td class="col-md-8"><span class="color" style="width: 14px; height: 14px; display: inline-block; background-color: {{generictag.color}}"></span>{{generictag.name}}</td>
+													<td class="col-md-8"><span class="color" style="width: 14px; height: 14px; display: inline-block; background-color: {{generictag.color}}"></span>{{generictag.tag}}</td>
 													<td class="col-md-2"><span ng-show="generictag.activated" class="glyphicon glyphicon glyphicon-remove" style="color: {{generictag.color}};" aria-hidden="true"></span></td>
 												</tr>
 											</tbody>
@@ -212,7 +212,7 @@
 						</div>
 						<div class="manualTagsdiv">
 							<div class="tagdiv" ng-repeat="tag in detailfile.tags">
-								<h3><span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span></h3>
+								<h3><span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.tag}}</span></h3>
 							</div>
 	
 						</div>

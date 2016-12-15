@@ -79,6 +79,8 @@ module.exports = function () {
             Options.select = "*";
         }
         var query = [];
+        var first = true;
+        var vars = {};
         if (Options.insert) {
             query.push("INSERT INTO " + Options.table + " (");
             var index = 0;
@@ -109,9 +111,10 @@ module.exports = function () {
                     query.push(",");
                 }
                 query.push("@" + key2);
+                vars[key2] = Options.insert[key2];
                 index++;
             }
-            query.push(");");
+            query.push(")");
         }
         if (Options.select) {
             query.push("SELECT");
@@ -120,8 +123,8 @@ module.exports = function () {
             }
             query.push(Options.select);
             query.push("FROM");
+            query.push(Options.table);
         }
-        query.push(Options.table);
         if (Options.join) {
             var join = MakeArray(Options.join);
             for (var i = 0; i < join.length; i++) {
@@ -137,8 +140,6 @@ module.exports = function () {
                 }
             }
         }
-        var first = true;
-        var vars = {};
         if (Options.equals) {
             var equals = MakeArray(Options.equals);
             for (var i = 0; i < equals.length; i++) {

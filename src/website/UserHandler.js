@@ -202,7 +202,7 @@ module.exports = function (debug) {
         }
 
         this.AddTag = function (session, name, color, userid, callback) {
-            if (GetIdFromSession(userid) != userid) {
+            if (this.GetIdFromSession(session) != userid) {
                 callback(false, "User id's not the same");
                 return;
             }
@@ -218,7 +218,7 @@ module.exports = function (debug) {
         }
 
         this.AddTagToDocument = function (session, documentid, tagid, userid, callback) {
-            if (GetIdFromSession(userid) != userid) {
+            if (this.GetIdFromSession(session) != userid) {
                 callback(false, "User id's not the same");
                 return;
             }
