@@ -218,6 +218,9 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         $scope.filter.row++;
         $http.post("/getdocuments", { "userid": $scope.user.id, "filter": $scope.filter }).then(function (response) {
             if (response.data.match) {
+                if ($scope.filter.row === 1) {
+                    $scope.userfiles = [];
+                }
                 $scope.userfiles = $scope.userfiles.concat(response.data.documents);
                 for (var i = 0; i < $scope.userfiles.length; i++) {
                     FormatDate($scope.userfiles[i]);
@@ -252,8 +255,9 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                 else if ($scope.file === "FileOverview") {
                     $('#fromdt').datetimepicker({ "showTodayButton": true }).on('dp.change', $scope.filterchange).data().DateTimePicker.date(new Date());
                     $('#todt').datetimepicker({ "showTodayButton": true }).on('dp.change', $scope.filterchange).data().DateTimePicker.date(new Date());
+                    $scope.datefilterCheckbox = false;
                     $scope.LoadMoreFiles = LoadMoreFiles;
-                    $scope.fileoverviewrow = 1;
+                    //$scope.fileoverviewrow = 1;
                     LoadMoreFiles();
                 }
             }
@@ -297,29 +301,12 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     };
 
-    /*$scope.detailfile = {
-        "id": "1", "url": "https://cdn.freefaxcoversheets.net/samples/basic.jpg", "name": "test", "tags": [
-            { "name": "test", "color": "lightblue" }, { "name": "test2", "color": "Cyan" }, { "name": "test3", "color": "DodgerBlue" },
-            { "name": "test4", "color": "DeepSkyBlue" }, { "name": "test5", "color": "DarkTurquoise" }
-        ], "manualtags": [
-            { "name": "manualtest", "color": "blue" }, { "name": "manualtest2", "color": "red" }, { "name": "manualtest3", "color": "orange" }
-        ], "generictags": [
-            { "name": "test", "color": "lightblue", "activated": false }, { "name": "test2", "color": "Cyan", "activated": false }, { "name": "test3", "color": "DodgerBlue", "activated": false },
-            { "name": "test4", "color": "DeepSkyBlue", "activated": false }, { "name": "test5", "color": "DarkTurquoise", "activated": false }
-        ], "date": "26/9/2016", "comment": "just something for testing"
-    };*/
-
-    /*$scope.generictags = [
-            { "name": "test", "color": "lightblue", "activated": false }, { "name": "test2", "color": "Cyan", "activated": false }, { "name": "test3", "color": "DodgerBlue", "activated": false },
-            { "name": "test4", "color": "DeepSkyBlue", "activated": false }, { "name": "test5", "color": "DarkTurquoise", "activated": false }
-        ];*/
-
     $scope.saveDetailComment = function () {
         console.log($scope.detailfile.comment);
         //todo api call to save comment
     };
 
-    $scope.filterchange = function () {
+    $scope.filterchange = function (value) {
         var currentfilter = {};
         if ($scope.contentfilterCheckbox) {
             currentfilter.content = $scope.contentfilterText;
@@ -330,22 +317,53 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         if ($scope.namefilterCheckbox) {
             currentfilter.name = $scope.namefilterText;
         }
-        if (
-            $scope.tagfilterCheckbox) {
+        if ($scope.tagfilterCheckbox) {
             currentfilter.tag = $scope.tagfilterText;
         }
         if ($scope.filtertimeoutrunning) {
             clearTimeout($scope.filtertimeout);
         }
+        if (value) {
+            if (typeof value === "object") {
+                $scope.datefilterCheckbox = true;
+            }
+            else if (typeof value === "string") {
+                switch (value) {
+                    case 'content':
+                        if ($scope.contentfilterText === "") {
+                            $scope.contentfilterCheckbox = false;
+                        } else {
+                            $scope.contentfilterCheckbox = true;
+                        }
+                        break;
+                    case 'name':
+                        if ($scope.namefilterText === "") {
+                            $scope.namefilterCheckbox = false;
+                        }
+                        else {
+                            $scope.namefilterCheckbox = true;
+                        }
+                        break;
+                    case 'tag':
+                        if ($scope.tagfilterText === "") {
+                            $scope.tagfilterCheckbox = false;
+                        } else {
+                            $scope.tagfilterCheckbox = true;
+                        }
+                        break;
+                }
+            }
+        }
+
         $scope.filtertimeoutrunning = true;
         $scope.filtertimeout = setTimeout(function () {
             console.log(currentfilter);
             $scope.filter = currentfilter;
             $scope.filtertimeoutrunning = false;
-            $scope.userfiles = [];
+            //$scope.userfiles = [];
             $scope.filter.row = 0;
             LoadMoreFiles();
-        }, 2500);
+        }, 1500);
     };
 
     $scope.generictagclick = function (clickedtag) {

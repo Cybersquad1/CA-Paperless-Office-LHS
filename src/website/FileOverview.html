@@ -139,12 +139,12 @@
 				<div class="filterdiv col-md-11 col-xs-11" ng-show="filtershow">
 					<h2>Filter:</h2>
 					<label><input type="checkbox" ng-model="contentfilterCheckbox" ng-change="filterchange()">Content</label>
-					<input type="text" class="form-control" id="" ng-model="contentfilterText" ng-change="filterchange()">
+					<input type="text" class="form-control" id="" ng-model="contentfilterText" ng-change="filterchange('content')">
 					<label><input type="checkbox" ng-model="datefilterCheckbox" ng-change="filterchange()">Date</label>
 					<div class="form-group row">
 						<label class="col-xs-2">From:</label>
 						<div class='input-group date' id='fromdt'>
-							<input type='text' class="form-control" ng-model="datefilterfrom" ng-change="filterchange()" />
+							<input type='text' class="form-control" ng-model="datefilterfrom" ng-change="filterchange('date')" />
 							<span class="input-group-addon">
                         		<span class="glyphicon glyphicon-calendar"></span>
 							</span>
@@ -153,16 +153,16 @@
 					<div class="form-group row">
 						<label class="col-xs-2">To:</label>
 						<div class='input-group date' id='todt'>
-							<input type='text' class="form-control" ng-model="datefilterto" ng-change="filterchange()" />
+							<input type='text' class="form-control" ng-model="datefilterto" ng-change="filterchange('date')" />
 							<span class="input-group-addon">
                         		<span class="glyphicon glyphicon-calendar"></span>
 							</span>
 						</div>
 					</div>
 					<label><input type="checkbox" value="" ng-model="namefilterCheckbox" ng-change="filterchange()">Name</label>
-					<input type="text" class="form-control" id="" ng-model="namefilterText" ng-change="filterchange()">
+					<input type="text" class="form-control" id="" ng-model="namefilterText" ng-change="filterchange('name')">
 					<label><input type="checkbox" value="" ng-model="tagfilterCheckbox" ng-change="filterchange()">Tag</label>
-					<input style="margin-bottom:5%;" type="text" class="form-control" id="" ng-model="tagfilterText" ng-change="filterchange()">
+					<input style="margin-bottom:5%;" type="text" class="form-control" id="" ng-model="tagfilterText" ng-change="filterchange('tag')">
 				</div>
 				<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>
 			</div>
