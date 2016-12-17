@@ -230,6 +230,28 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         });
     }
 
+    function LoadSuggestions(tags) {
+        console.log(tags);
+        for (var i = 0; i < tags.length; i++) {
+            var tagfilter = {};
+            tagfilter.tag = tags[i].tag;
+            console.log(tagfilter);
+            $http.post("/getdocuments", { "userid": $scope.user.id, "filter": tagfilter }).then(function (response) {
+                console.log(response.data);
+                if (response.data.match) {
+                    if ($scope.filter.row === 1) {
+                        $scope.userfiles = [];
+                    }
+                    $scope.userfiles = $scope.userfiles.concat(response.data.documents);
+                    for (var i = 0; i < $scope.userfiles.length; i++) {
+                        FormatDate($scope.userfiles[i]);
+                    }
+                    console.log(response.data.documents);
+                }
+            });
+        }
+    }
+
     function init() {
         var split = $window.location.pathname.split("/");
         split = split[split.length - 1].split(".");
@@ -250,6 +272,8 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                         console.log(searchparse.id);
                         $scope.detailviewId = searchparse.id;
                         detailviewchange();
+                        //todo function for lus tags ---> concat                     STILL DOING
+                        
                     }
                 }
                 else if ($scope.file === "FileOverview") {
@@ -276,6 +300,12 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             $scope.usertags = res.data.tags || [];
             FormatDate($scope.detailfile);
             $scope.downloadfiles = res.data.files;
+            if($scope.detailfile.tags){
+            LoadSuggestions($scope.detailfile.tags)
+            }
+            else{
+                console.log($scope.detailfile);
+            }
         });
     }
 
