@@ -228,7 +228,7 @@
 			<!--<h2>PlaceHolder</h2>
 			<div ng-repeat="suggestion in fileSuggestions">
 			</div>-->
-			<div class="filediv col-centered" ng-repeat="file in userfiles|limitTo:4" ng-click="fileclick(file)">
+			<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file)">
 						<h4 style="margin-left:5%;">{{file.name}}</h4>
 						<img class="fileimg" src="{{file.url}}">
 						<div>
