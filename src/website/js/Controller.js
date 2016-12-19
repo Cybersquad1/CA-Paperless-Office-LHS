@@ -213,7 +213,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     }
 
-    function ResetFiles(){
+    function ResetFiles() {
         $scope.filter.row = 0;
         LoadMoreFiles();
     }
@@ -240,19 +240,43 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         });
     }
 
-    function LoadSuggestions(tags) {
+    function LoadSuggestions(currentdetailfile) {
         //console.log(tags);
         $scope.userfiles = [];
-        for (var i = 0; i < tags.length; i++) {
+        var tags = currentdetailfile.tags;
+        console.log(tags);
+
+        for (let i = 0; i < tags.length; i++) {
             var tagfilter = {};
             tagfilter.tag = tags[i].tag;
+            $scope.userfiles = [];
             //console.log(tagfilter);
             $http.post("/getdocuments", { "userid": $scope.user.id, "filter": tagfilter }).then(function (response) {
                 //console.log(response.data);
                 if (response.data.match) {
-                    $scope.userfiles = $scope.userfiles.concat(response.data.documents);
-                    for (var i = 0; i < $scope.userfiles.length; i++) {
-                        FormatDate($scope.userfiles[i]);
+                    for (var p = 0; p < response.data.documents.length; p++) {
+                        var found = false;
+                        if (response.data.documents[p].id == currentdetailfile.id) {
+                            found=true;
+                        } else {
+                            for (var o = 0; o < $scope.userfiles.length; o++) {                                
+                                if ($scope.userfiles[o].id == response.data.documents[p].id) {
+                                    found = true;
+                                    break;
+                                }                                
+                            };
+                        }
+                        if (!found) {
+                            $scope.userfiles.push(response.data.documents[p]);
+                        }
+
+                        /*if (!($scope.userfiles.hasOwnProperty(response.data.documents[p])) || !(currentdetailfile === response.data.documents[p])){
+                            $scope.userfiles.push(response.data);
+                        }*/
+                    }
+                    //}
+                    for (var m = 0; m < $scope.userfiles.length; m++) {
+                        FormatDate($scope.userfiles[m]);
                     }
                     //console.log(response.data.documents);
                 }
@@ -309,7 +333,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             FormatDate($scope.detailfile);
             $scope.downloadfiles = res.data.files;
             if ($scope.detailfile.tags) {
-                LoadSuggestions($scope.detailfile.tags);
+                LoadSuggestions($scope.detailfile);
             }
             //else {
             //console.log($scope.detailfile);
