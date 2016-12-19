@@ -242,7 +242,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     function LoadSuggestions(tags) {
         //console.log(tags);
-        var o = 0;
+        $scope.userfiles = [];
         for (var i = 0; i < tags.length; i++) {
             var tagfilter = {};
             tagfilter.tag = tags[i].tag;
@@ -250,10 +250,6 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             $http.post("/getdocuments", { "userid": $scope.user.id, "filter": tagfilter }).then(function (response) {
                 //console.log(response.data);
                 if (response.data.match) {
-                    if (o === 0) {
-                        $scope.userfiles = [];
-                    }
-                    o++;
                     $scope.userfiles = $scope.userfiles.concat(response.data.documents);
                     for (var i = 0; i < $scope.userfiles.length; i++) {
                         FormatDate($scope.userfiles[i]);
@@ -428,7 +424,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                 //+getting current active generictags from file
             }
         }*/
-        $scope.detailfile.tags.push(clickedtag);
+        //$scope.detailfile.tags.push(clickedtag);
         $http.post('/addtagtodocument', { "document": $scope.detailviewId, "tag": clickedtag.id, "userid": $scope.user.id }).then(function (response) {
             //console.log(response);
             detailviewchange();

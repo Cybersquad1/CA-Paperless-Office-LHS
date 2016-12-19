@@ -214,7 +214,14 @@ module.exports = function (debug) {
                 "documentid": documentid,
                 "tagid": tagid
             };
-            db.QueryObject(sql, { "insert": tag, "table": "linked" }, callback);
+            db.QueryObject(sql, { "select": "*", "table": "linked", "equals": tag }, function (m) {
+                if (m) {
+                    db.QueryObject(sql, { "delete": "*", "table": "linked", "equals": tag }, callback);
+                }
+                else {
+                    db.QueryObject(sql, { "insert": tag, "table": "linked" }, callback);
+                }
+            });
         }
 
         this.AddTagToDocument = function (session, documentid, tagid, userid, callback) {

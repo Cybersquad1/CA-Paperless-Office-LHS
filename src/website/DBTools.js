@@ -75,7 +75,7 @@ module.exports = function () {
             callback(false, "No Table specified");
             return;
         }
-        if (!Options.insert && !Options.select) {
+        if (!Options.insert && !Options.select && !Options.delete) {
             Options.select = "*";
         }
         var query = [];
@@ -115,6 +115,10 @@ module.exports = function () {
                 index++;
             }
             query.push(")");
+        }
+        if (Options.delete) {
+            query.push("DELETE FROM");
+            query.push(Options.table);
         }
         if (Options.select) {
             query.push("SELECT");
