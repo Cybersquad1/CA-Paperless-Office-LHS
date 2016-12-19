@@ -280,6 +280,15 @@ UserHandler.Init(app, function (err) {
         });
     });
 
+    /*app.post('/deletefiles', function (req, res) {
+        UserHandler.DeleteFiles(req.session, req.body.userid, req.body.document, function (match, result) {
+            res.json({
+                "match": match,
+                "error": result
+            });
+        });
+    });*/
+
     PublishDir("/js");
     PublishDir("/css");
     PublishDir("/fonts");

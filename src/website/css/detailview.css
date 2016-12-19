@@ -2,7 +2,7 @@ body {
     padding-top: 65px;
 }
 
-.downloadbutton{
+.button{
   margin-top: 20px;
 }
 
@@ -57,6 +57,10 @@ textarea {
     border-radius: 5px;
     cursor:pointer; 
     cursor: hand;
+}
+
+.btn-group {
+    display: flex;
 }
 
 
