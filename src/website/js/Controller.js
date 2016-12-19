@@ -346,10 +346,10 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     $scope.filterchange = function (value) {
         console.log(value);
         if (value) {
-            /*if (typeof value === "object") {
+            if (typeof value === "object") {
                 $scope.datefilterCheckbox = true;
             }
-            else */if (typeof value === "string") {
+            else if (typeof value === "string") {
                 switch (value) {
                     case 'content':
                         if ($scope.contentfilterText === "") {
