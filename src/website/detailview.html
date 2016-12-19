@@ -143,7 +143,7 @@
 						<div class="row">
 							<ul class="nav nav-tabs">
 								<li class="active"><a href="#generictags-form" data-toggle="tab">tags</a></li>
-								<li><a href="#costumtags-form" data-toggle="tab">new tag</a></li>
+								<li><a href="#customtags-form" data-toggle="tab">new tag</a></li>
 							</ul>
 							<div class="tab-content">
 								<div class="tab-pane active" id="generictags-form">
@@ -164,24 +164,22 @@
 										</table>
 									</form>
 								</div>
-								<div class="tab-pane" id="costumtags-form">
+								<div class="tab-pane" id="customtags-form">
 									<form role="form" class="form-horizontal form-group">
 										<div class="">
 											<h4>Name:</h4>
-											<input type="text" class="form-control" ng-model="costumtagname" placeholder="tagname">
+											<input type="text" class="form-control" ng-model="customtagname" placeholder="tagname">
 											<h4>Color:</h4>
-											<input type="color" ng-model="costumtagcolor">
+											<input type="color" ng-model="customtagcolor">
 										</div>
 										<br/>
 										<div id="uploadwarnings"></div>
 										<button class="btn btn-success" type="button" ng-click="makeTag()">Make tag</button>
 									</form>
 								</div>
-
 							</div>
 						</div>
 					</div>
-
 				</div>
 			</div>
 			<!-- modal-content -->
@@ -219,7 +217,6 @@
 							<div class="tagdiv" ng-repeat="tag in detailfile.tags">
 								<h3><span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.tag}}</span></h3>
 							</div>
-
 						</div>
 					</div>
 				</div>
@@ -227,7 +224,7 @@
 			<button class="btn btn-default" style="float:right;margin-top:2%;margin-right:15px" data-toggle="modal" data-target="#addtagModal">add Tag</button>
 		</div>
 
-		<div class="container suggestiondiv" style="">
+		<div class="container suggestiondiv">
 			<!--<h2>PlaceHolder</h2>
 			<div ng-repeat="suggestion in fileSuggestions">
 			</div>-->
@@ -241,9 +238,8 @@
 							<div>
 								<p style="margin-top:10px;margin-bottom:0px; margin-right:5% ;" align="right">{{file.formateddate}}</p>
 							</div>
-						</div>
-					</div>
-				</div>
+						</div>				
+			</div>
 		</div>
 		<footer class="col-sm-12 footer">
 			<div class="container">
