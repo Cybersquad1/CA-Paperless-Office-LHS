@@ -346,10 +346,10 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     $scope.filterchange = function (value) {
         console.log(value);
         if (value) {
-            if (typeof value === "object") {
+            /*if (typeof value === "object") {
                 $scope.datefilterCheckbox = true;
             }
-            else if (typeof value === "string") {
+            else */if (typeof value === "string") {
                 switch (value) {
                     case 'content':
                         if ($scope.contentfilterText === "") {
@@ -430,17 +430,17 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     }
 
     $scope.makeTag = function () {
-        var tagCheck = CheckTag($scope.costumtagname);
+        var tagCheck = CheckTag($scope.customtagname);
         if (tagCheck !== undefined) {
             //todo showing error message
         }
         else {
-            $scope.costumtagcolor = $scope.costumtagcolor || "#000000";
-            var costumTag = { "name": $scope.costumtagname, "color": $scope.costumtagcolor };
+            $scope.customtagcolor = $scope.customtagcolor || "#000000";
+            var costumTag = { "name": $scope.customtagname, "color": $scope.customtagcolor };
             console.log("new tag is:");
             console.log(costumTag);
             // $scope.usertags.push(costumTag); //todo needs to be changed to an apicall with a detailfile as return value
-            $http.post('/addtag', { "name": $scope.costumtagname, "color": $scope.costumtagcolor, "userid": $scope.user.id }).then(function (response) {
+            $http.post('/addtag', { "name": $scope.customtagname, "color": $scope.customtagcolor, "userid": $scope.user.id }).then(function (response) {
                 //console.log(response);
                 detailviewchange();
             });

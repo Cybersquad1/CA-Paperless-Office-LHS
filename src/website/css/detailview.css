@@ -47,6 +47,31 @@ textarea {
     text-align:center;
 }
 
+.filediv{
+    width:150px;
+    margin:10px;
+    float:left; 
+    border-style:solid;
+    border-color: black;
+    border-width: 1px; 
+    border-radius: 5px;
+    cursor:pointer; 
+    cursor: hand;
+}
+
+
+/* Little preview img */
+.fileimg{
+    max-width:95%;
+    margin:auto;
+    display:block;
+    max-height:150px ;
+}
+
+.filesdiv{
+    margin-bottom: 40px;
+}
+
 
 /* Footer
 ------------------*/
