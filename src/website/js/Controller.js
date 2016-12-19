@@ -227,26 +227,32 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                 }
                 console.log(response.data.documents);
             }
+            else {
+                console.log(response);
+                $scope.userfiles = [];
+            }
         });
     }
 
     function LoadSuggestions(tags) {
-        console.log(tags);
+        //console.log(tags);
+        var o = 0;
         for (var i = 0; i < tags.length; i++) {
             var tagfilter = {};
             tagfilter.tag = tags[i].tag;
-            console.log(tagfilter);
+            //console.log(tagfilter);
             $http.post("/getdocuments", { "userid": $scope.user.id, "filter": tagfilter }).then(function (response) {
-                console.log(response.data);
+                //console.log(response.data);
                 if (response.data.match) {
-                    if ($scope.filter.row === 1) {
+                    if (o === 0) {
                         $scope.userfiles = [];
                     }
+                    o++;
                     $scope.userfiles = $scope.userfiles.concat(response.data.documents);
                     for (var i = 0; i < $scope.userfiles.length; i++) {
                         FormatDate($scope.userfiles[i]);
                     }
-                    console.log(response.data.documents);
+                    //console.log(response.data.documents);
                 }
             });
         }
@@ -257,10 +263,10 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         split = split[split.length - 1].split(".");
         $scope.file = split[0];
         $http.get('/getuser').then(function (response) {
-            console.log(response.data);
+            //console.log(response.data);
             $scope.loggedin = response.data.loggedin;
             if (!$scope.loggedin && ($scope.file === "FileOverview" || $scope.file === "detailview")) {
-                console.log("error");
+                //console.log("error");
                 $window.location.href = '/index.html';
             }
             else if ($scope.loggedin) {
@@ -269,11 +275,11 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                     var searchresult = window.location.search.substring(1);
                     var searchparse = JSON.parse('{"' + decodeURI(searchresult).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g, '":"') + '"}');
                     if (searchparse.id) {
-                        console.log(searchparse.id);
+                        //console.log(searchparse.id);
                         $scope.detailviewId = searchparse.id;
                         detailviewchange();
                         //todo function for lus tags ---> concat                     STILL DOING
-                        
+
                     }
                 }
                 else if ($scope.file === "FileOverview") {
@@ -282,7 +288,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                     $scope.datefilterCheckbox = false;
                     $scope.LoadMoreFiles = LoadMoreFiles;
                     //$scope.fileoverviewrow = 1;
-                    LoadMoreFiles();
+                    //LoadMoreFiles();
                 }
             }
         });
@@ -290,7 +296,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     function detailviewchange() {
         $http.post("/getdetaildocument", { "userid": $scope.user.id, "document": $scope.detailviewId }).then(function (res) {
-            console.log(res);
+            //console.log(res);
             if (res.data.error) {
                 console.log(res.data.error);
                 return;
@@ -300,12 +306,12 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             $scope.usertags = res.data.tags || [];
             FormatDate($scope.detailfile);
             $scope.downloadfiles = res.data.files;
-            if($scope.detailfile.tags){
-            LoadSuggestions($scope.detailfile.tags)
+            if ($scope.detailfile.tags) {
+                LoadSuggestions($scope.detailfile.tags);
             }
-            else{
-                console.log($scope.detailfile);
-            }
+            //else {
+            //console.log($scope.detailfile);
+            //}
         });
     }
 
@@ -338,22 +344,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     };
 
     $scope.filterchange = function (value) {
-        var currentfilter = {};
-        if ($scope.contentfilterCheckbox) {
-            currentfilter.content = $scope.contentfilterText;
-        }
-        if ($scope.datefilterCheckbox) {
-            currentfilter.date = { "from": $('#fromdt').data().DateTimePicker.date()._d, "to": $('#todt').data().DateTimePicker.date()._d };
-        }
-        if ($scope.namefilterCheckbox) {
-            currentfilter.name = $scope.namefilterText;
-        }
-        if ($scope.tagfilterCheckbox) {
-            currentfilter.tag = $scope.tagfilterText;
-        }
-        if ($scope.filtertimeoutrunning) {
-            clearTimeout($scope.filtertimeout);
-        }
+        console.log(value);
         if (value) {
             if (typeof value === "object") {
                 $scope.datefilterCheckbox = true;
@@ -384,6 +375,31 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                         break;
                 }
             }
+        }
+        var currentfilter = {};
+        if ($scope.contentfilterCheckbox) {
+            currentfilter.content = $scope.contentfilterText;
+        }
+        if ($scope.datefilterCheckbox) {
+            if ($('#fromdt').data().DateTimePicker && $('#todt').data().DateTimePicker) {
+                currentfilter.date = { "from": $('#fromdt').data().DateTimePicker.date()._d.toString(), "to": $('#todt').data().DateTimePicker.date()._d.toString() };
+                if (currentfilter.date.from === currentfilter.date.to) {
+                    $scope.datefilterCheckbox = false;
+                    delete currentfilter.date;
+                }
+            }
+            else {
+                $scope.datefilterCheckbox = false;
+            }
+        }
+        if ($scope.namefilterCheckbox) {
+            currentfilter.name = $scope.namefilterText;
+        }
+        if ($scope.tagfilterCheckbox) {
+            currentfilter.tag = $scope.tagfilterText;
+        }
+        if ($scope.filtertimeoutrunning) {
+            clearTimeout($scope.filtertimeout);
         }
 
         $scope.filtertimeoutrunning = true;
