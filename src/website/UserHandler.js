@@ -468,16 +468,37 @@ module.exports = function (debug) {
                     callback(false, id);
                     return;
                 }
-                blobSvc.createBlockBlobFromStream('paperless', id + ".blob", stream, stream.size, function (error) {
+                var ret = function (error) {
                     if (error) {
                         ErrorEvent.HError(error, 1);
                         callback(false, 'error uploading to blob');
                         return;
                     }
-                    var str = fs.createReadStream(stream.path);
-                    GenerateKeywords(documentid, str, callback);
-                    //callback(true, documentid, id);
-                });
+                    if (type === original) {
+                        var str = fs.createReadStream(stream.path);
+                        GenerateThumbnail(documentid, str, function (s, e) {
+                            if (!s) {
+                                ErrorEvent.HError(e, 0);
+                            }
+                            var str2 = fs.createReadStream(stream.path);
+                            GenerateKeywords(documentid, str2, function (s2, e2) {
+                                if (!s2) {
+                                    ErrorEvent.HError(e2, 0);
+                                }
+                                callback(true);
+                            });
+                        });
+                    }
+                    else {
+                        callback(true, documentid, id);
+                    }
+                };
+                if (stream.istext) {
+                    blobSvc.createBlockBlobFromText('paperless', id + ".blob", Buffer.from(stream.text), ret);
+                }
+                else {
+                    blobSvc.createBlockBlobFromStream('paperless', id + ".blob", stream, stream.size, ret);
+                }
             });
         }
 
@@ -565,18 +586,21 @@ module.exports = function (debug) {
         function GenerateThumbnail(documentid, stream, callback) {
             request({
                 method: 'POST',
-                url: 'https://api.projectoxford.ai/vision/v1.0/generateThumbnail?width=500&height=500&smartCropping=true',
+                url: 'https://api.projectoxford.ai/vision/v1.0/generateThumbnail?width=100&height=150&smartCropping=true',
                 headers: {
                     'Content-type': 'application/octet-stream',
                     'Ocp-Apim-Subscription-Key': apikey.api_key_cv
                 },
+                encoding: null,
                 body: stream
             }, function (error, response, result) {
                 if (!error && response.statusCode === 200) {
-                    var buf = Buffer.from(result);
+                    var str = { istext: true, originalFilename: "thumbnail.jpg", text: result, size: result.length * 8 };
+                    //var buf = Buffer.from(result);
                     //Image upload naar database
-                    buf.originalFilename = "thumbnail.jpg";
-                    rawUpload(documentid, thumbnail, buf, callback)
+                    //buf.originalFilename = "thumbnail.jpg";
+                    //buf.size = buf.length;
+                    rawUpload(documentid, thumbnail, str, callback);
                 }
                 else {
                     callback(false, "Generating thumbnail failed");
@@ -650,6 +674,9 @@ module.exports = function (debug) {
                                 return;
                             }
                         });
+                    }
+                    else {
+                        callback(false, "No text");
                     }
                 }
                 else {
