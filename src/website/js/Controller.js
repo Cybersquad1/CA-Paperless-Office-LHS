@@ -164,6 +164,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                 $scope.files.splice($scope.files.indexOf(file), 1);
                 if ($scope.files === undefined || $scope.files.length === 0) {
                     showwarning("All files uploaded", "success", "Done");
+                    ResetFiles();
                 }
             }
             else {
@@ -210,6 +211,11 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             }
             document.formateddate = formatdate;
         }
+    }
+
+    function ResetFiles(){
+        $scope.filter.row = 0;
+        LoadMoreFiles();
     }
 
     function LoadMoreFiles() {
