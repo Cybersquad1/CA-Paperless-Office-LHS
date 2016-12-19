@@ -225,6 +225,11 @@ module.exports = function (debug) {
             AddTagToDocument(documentid, tagid, callback);
         }
 
+        function GetThumbnail(documentid, type, callback) {
+            var options = { "select": "id, document", "table": "files", "equals": [{ "document": documentid, "type": type }] };
+            db.QueryObject(sql, options, callback);
+        }
+
         function getDocument(object, callback) {
             var row = object.row || 0;
             var options = { "sort": 'id', "limit": { "low": ((row - 1) * 20) + 1, "high": row * 20 }, "join": [], "equals": [], "like": [], "between": [], "distinct": true, "select": "documents.date,documents.id,documents.name", "table": "documents", "sort": "documents.id" };
@@ -263,7 +268,20 @@ module.exports = function (debug) {
                             recordset[i].tags = [];
                         }
                         done++;
-                        if (done === length) {
+                        if (done === length * 2) {
+                            callback(true, recordset);
+                            return;
+                        }
+                    });
+                    GetThumbnail(recordset[i].id, thumbnail, function (mm, rs) {
+                        if (mm) {
+                            recordset[i].url = "/download?userid=" + object.userid + "&documentid=" + rs[0].document + "&fileid=" + rs[0].id;
+                        }
+                        else {
+                            recordset[i].url = "";
+                        }
+                        done++;
+                        if (done === length * 2) {
                             callback(true, recordset);
                             return;
                         }
@@ -285,7 +303,15 @@ module.exports = function (debug) {
                     else {
                         recordset[0].tags = [];
                     }
-                    callback(true, recordset);
+                    GetThumbnail(recordset[0].id, original, function (mm, rs) {
+                        if (mm) {
+                            recordset[0].url = "/download?userid=" + userid + "&documentid=" + rs[0].document + "&fileid=" + rs[0].id;
+                        }
+                        else {
+                            recordset[0].url = "";
+                        }
+                        callback(true, recordset);
+                    });
                     return;
                 });
             });
@@ -494,7 +520,7 @@ module.exports = function (debug) {
                     }
                 };
                 if (stream.istext) {
-                    blobSvc.createBlockBlobFromText('paperless', id + ".blob", Buffer.from(stream.text), ret);
+                    blobSvc.createBlockBlobFromText('paperless', id + ".blob", stream.text, ret);
                 }
                 else {
                     blobSvc.createBlockBlobFromStream('paperless', id + ".blob", stream, stream.size, ret);
