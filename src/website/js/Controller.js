@@ -199,6 +199,15 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     };
 
+    /*$scope.deleteFiles = function () {
+        $http.post("/deletefiles", { userid: $scope.user.id, document: $scope.detailfile.id }).then(function (res) {
+            if (res.data.error) {
+                console.log(res.data.error);
+                return;
+            }
+        });
+    };*/
+
     function FormatDate(document) {
         if (!document.formateddate) {
             var formatdate;
@@ -213,7 +222,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     }
 
-    function ResetFiles(){
+    function ResetFiles() {
         $scope.filter.row = 0;
         LoadMoreFiles();
     }

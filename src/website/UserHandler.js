@@ -616,6 +616,21 @@ module.exports = function (debug) {
             });
         };
 
+        /*this.DeleteFiles = function (session, userid, documentid, callback) {
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            checkDocument(userid, documentid, function (match) {
+                if (!match) {
+                    callback(false, "Document not from user");
+                    return;
+                }
+                db.QueryObject(sql, { "delete": "*", "table": "documents", "equals": {id: documentid}}, callback);
+                db.QueryObject(sql, { "delete": "*", "table": "files", "equals": {document: documentid}}, callback);
+            })
+        }*/
+
         function GenerateThumbnail(documentid, stream, callback) {
             request({
                 method: 'POST',
