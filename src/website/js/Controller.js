@@ -332,9 +332,9 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         }
     };
 
-    $scope.saveDetailComment = function () {
-        console.log($scope.detailfile.comment);
-        //todo api call to save comment
+    $scope.saveDetailContent = function () {
+        console.log($scope.detailfile.content);
+        //todo api call to save content
     };
 
     $scope.filterchange = function (value) {
@@ -433,7 +433,5 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     //todo need to make a way to delete manual added tags
 
-
-    //todo reactivate this
     init();
 });
