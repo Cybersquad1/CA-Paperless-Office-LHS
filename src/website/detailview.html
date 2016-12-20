@@ -197,12 +197,12 @@
 						<div class="btn-group">
 							<button class="button btn btn-danger" ng-click="deleteFiles()">
 							Delete
-							<span class="glyphicon glyphicon-remove" aria-hidden="true"</span>
-						</button>
+								<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+							</button>
 							<button class="button btn btn-default dropdown-toggle" data-toggle="dropdown"> 
 							Download
-							<span class=" glyphicon glyphicon-download" aria-hidden="true"></span>
-						</button>
+								<span class=" glyphicon glyphicon-download" aria-hidden="true"></span>
+							</button>
 							<ul class="dropdown-menu">
 								<li ng-repeat="x in downloadfiles"><a href="/download?userid={{user.id}}&documentid={{detailfile.id}}&fileid={{x.id}}">{{x.name}}</a></li>
 							</ul>
@@ -233,16 +233,16 @@
 			<div ng-repeat="suggestion in fileSuggestions">
 			</div>-->
 			<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file)">
-						<h4 style="margin-left:5%;">{{file.name}}</h4>
-						<img class="fileimg" src="{{file.url}}">
-						<div>
-							<div class="tagdiv" ng-repeat="tag in file.tags">
-								<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.tag}}</span>
-							</div>
-							<div>
-								<p style="margin-top:10px;margin-bottom:0px; margin-right:5% ;" align="right">{{file.formateddate}}</p>
-							</div>
-						</div>				
+				<h4 style="margin-left:5%;">{{file.name}}</h4>
+				<img class="fileimg" src="{{file.url}}">
+				<div>
+					<div class="tagdiv" ng-repeat="tag in file.tags">
+						<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.tag}}</span>
+					</div>
+					<div>
+						<p style="margin-top:10px;margin-bottom:0px; margin-right:5% ;" align="right">{{file.formateddate}}</p>
+					</div>
+				</div>
 			</div>
 		</div>
 		<footer class="col-sm-12 footer">

@@ -375,8 +375,12 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     };
 
     $scope.saveDetailContent = function () {
-        console.log($scope.detailfile.content);
-        //todo api call to save content
+        //console.log($scope.detailfile.content);
+        $http.post('/updatecontent', { "document": $scope.detailviewId,"userid": $scope.user.id, "content":$scope.detailfile.content }).then(function (response) {
+            //console.log(response);
+            detailviewchange();
+        });
+        
     };
 
     $scope.filterchange = function (value) {
