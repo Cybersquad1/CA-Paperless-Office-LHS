@@ -631,7 +631,21 @@ module.exports = function (debug) {
                         db.QueryObject(sql, { "delete": "*", "table": "linked", "equals": { "documentid": documentid } }, callback);
                     });
                 });
-            })
+            });
+        }
+
+        this.UpdateContent = function (session, userid, documentid, content, callback) {
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            checkDocument(userid, documentid, function (match) {
+                if (!match) {
+                    callback(false, "Document not from user");
+                    return;
+                }
+                db.Query(sql, "UPDATE documents SET content = @content WHERE id = @id", { 'id': documentid, 'content': content }, callback);
+            });
         }
 
         function GenerateThumbnail(documentid, stream, callback) {

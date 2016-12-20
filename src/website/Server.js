@@ -244,7 +244,7 @@ UserHandler.Init(app, function (err) {
         UserHandler.AddTag(req.session, req.body.name, req.body.color, req.body.userid, function (match, result) {
             res.json({
                 "match": match,
-                "error": result
+                "result": result
             });
         });
     });
@@ -253,7 +253,7 @@ UserHandler.Init(app, function (err) {
         UserHandler.AddTagToDocument(req.session, req.body.document, req.body.tag, req.body.userid, function (match, result) {
             res.json({
                 "match": match,
-                "error": result
+                "result": result
             });
         });
     });
@@ -284,7 +284,16 @@ UserHandler.Init(app, function (err) {
         UserHandler.DeleteFiles(req.session, req.body.userid, req.body.document, function (match, result) {
             res.json({
                 "match": match,
-                "error": result
+                "result": result
+            });
+        });
+    });
+
+    app.post('/updatecontent', function(req, res){
+        UserHandler.UpdateContent(req.session, req.body.userid, req.body.document, req.body.content, function(match, result){
+            res.json({
+                "match": match,
+                "result": result
             });
         });
     });
