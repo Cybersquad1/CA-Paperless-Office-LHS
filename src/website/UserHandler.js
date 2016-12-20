@@ -77,7 +77,7 @@ module.exports = function (debug) {
         function CheckDocumentTable() {
             db.Exists(sql,
                 'documents',
-                'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid INT, date DATETIME, content varchar(1000));', undefined,
+                'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid INT, date DATETIME, content varchar(2000));', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -616,7 +616,7 @@ module.exports = function (debug) {
             });
         };
 
-        /*this.DeleteFiles = function (session, userid, documentid, callback) {
+        this.DeleteFiles = function (session, userid, documentid, callback) {
             if (this.GetIdFromSession(session) !== userid || userid === -1) {
                 callback(false, "User id's not the same");
                 return;
@@ -626,10 +626,13 @@ module.exports = function (debug) {
                     callback(false, "Document not from user");
                     return;
                 }
-                db.QueryObject(sql, { "delete": "*", "table": "documents", "equals": {id: documentid}}, callback);
-                db.QueryObject(sql, { "delete": "*", "table": "files", "equals": {document: documentid}}, callback);
+                db.QueryObject(sql, { "delete": "*", "table": "documents", "equals": { "id": documentid } }, function () {
+                    db.QueryObject(sql, { "delete": "*", "table": "files", "equals": { "document": documentid } }, function () {
+                        db.QueryObject(sql, { "delete": "*", "table": "linked", "equals": { "documentid": documentid } }, callback);
+                    });
+                });
             })
-        }*/
+        }
 
         function GenerateThumbnail(documentid, stream, callback) {
             request({
@@ -707,7 +710,7 @@ module.exports = function (debug) {
                                     }
                                 }
                                 finaltext = finaltext.join(' ');
-                                db.Query(sql, "UPDATE documents SET content=@content WHERE id=@id", { 'id': documentid, 'content': finaltext }, function (success) {
+                                db.Query(sql, "UPDATE documents SET content = content + @content WHERE id = @id", { 'id': documentid, 'content': finaltext }, function (success) {
                                     if (success) {
                                         callback(true);
                                         return;
