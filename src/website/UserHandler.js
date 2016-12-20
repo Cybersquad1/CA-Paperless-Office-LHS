@@ -724,7 +724,7 @@ module.exports = function (debug) {
                                     }
                                 }
                                 finaltext = finaltext.join(' ');
-                                db.Query(sql, "UPDATE documents SET content = content + @content WHERE id = @id", { 'id': documentid, 'content': finaltext }, function (success) {
+                                db.Query(sql, "UPDATE documents SET content = coalesce(content + @content, @content) WHERE id = @id", { 'id': documentid, 'content': finaltext }, function (success) {
                                     if (success) {
                                         callback(true);
                                         return;
