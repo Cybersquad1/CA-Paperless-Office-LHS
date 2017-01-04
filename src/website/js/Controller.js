@@ -209,7 +209,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         });
     };
 
-    function FormatDate(document) {
+    /*function FormatDate(document) {
         if (!document.formateddate) {
             var formatdate;
             if (document.date) {
@@ -221,7 +221,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             }
             document.formateddate = formatdate;
         }
-    }
+    }*/
 
     function ResetFiles() {
         $scope.filter.row = 0;
@@ -238,10 +238,10 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                     $scope.userfiles = [];
                 }
                 $scope.userfiles = $scope.userfiles.concat(response.data.documents);
-                for (var i = 0; i < $scope.userfiles.length; i++) {
+                /*for (var i = 0; i < $scope.userfiles.length; i++) {
                     FormatDate($scope.userfiles[i]);
                 }
-                console.log(response.data.documents);
+                console.log(response.data.documents);*/
             }
             else {
                 console.log(response);
@@ -286,7 +286,7 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                     }
                     //}
                     for (var m = 0; m < $scope.userfiles.length; m++) {
-                        FormatDate($scope.userfiles[m]);
+                        //FormatDate($scope.userfiles[m]);
                     }
                     //console.log(response.data.documents);
                 }
@@ -340,11 +340,12 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             $scope.detailfile = res.data.document;
             $scope.detailfile.tags = $scope.detailfile.tags || [];
             $scope.usertags = res.data.tags || [];
-            FormatDate($scope.detailfile);
+            //FormatDate($scope.detailfile);
             $scope.downloadfiles = res.data.files;
             if ($scope.detailfile.tags) {
                 LoadSuggestions($scope.detailfile);
             }
+            console.log()
             //else {
             //console.log($scope.detailfile);
             //}

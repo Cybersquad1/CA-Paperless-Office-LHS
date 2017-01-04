@@ -209,7 +209,7 @@
 						</div>
 					</div>
 					<div style="clear:both;">
-						<h4>Date: {{detailfile.formateddate}} </h4>
+						<h4>Date: {{detailfile.date | date : 'd-M-y H:mm'}} </h4>
 						<div class="" style="height:300px; border:solid black;">
 							<!--<div class="form-group">-->
 							<label for="content">Content:</label>
@@ -240,7 +240,7 @@
 						<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.tag}}</span>
 					</div>
 					<div>
-						<p style="margin-top:10px;margin-bottom:0px; margin-right:5% ;" align="right">{{file.formateddate}}</p>
+						<p style="margin-top:10px;margin-bottom:0px; margin-right:5% ;" align="right">{{file.date | date : 'd-M-y H:mm'}}</p>
 					</div>
 				</div>
 			</div>
