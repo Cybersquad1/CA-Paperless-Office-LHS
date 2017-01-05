@@ -290,9 +290,9 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                         }*/
                     }
                     //}
-                    for (var m = 0; m < $scope.userfiles.length; m++) {
-                        //FormatDate($scope.userfiles[m]);
-                    }
+                    /*for (var m = 0; m < $scope.userfiles.length; m++) {
+                        FormatDate($scope.userfiles[m]);
+                    }*/
                     //console.log(response.data.documents);
                 }
             });
