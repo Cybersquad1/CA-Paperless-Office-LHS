@@ -239,7 +239,7 @@ module.exports = function (debug) {
 
         function getDocument(object, callback) {
             var row = object.row || 1;
-            var options = { "sort": 'id', "limit": { "low": ((row - 1) * 20) + 1, "high": row * 20 }, "join": [], "equals": [], "like": [], "between": [], "distinct": true, "select": "documents.date,documents.id,documents.name", "table": "documents", "sort": "documents.id" };
+            var options = { "sort": 'documents.id DESC', "limit": { "low": ((row - 1) * 20) + 1, "high": row * 20 }, "join": [], "equals": [], "like": [], "between": [], "distinct": true, "select": "documents.date,documents.id,documents.name", "table": "documents"};
             if (!object.userid) {
                 callback(false, "No userid");
             }
