@@ -151,6 +151,73 @@
             <!-- modal-dialog -->
         </div>
 
+        <!-- Upload modal -->
+		<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">Upload</h4>
+					</div>
+					<div class="modal-body" style="padding: 3em;">
+						<div class="row">
+							<div id="Upload-form">
+								<form role="form" class="form-horizontal form-group">
+									<div class="">
+										<h4>Name:</h4>
+										<input type="text" class="form-control" ng-model="documentname" placeholder="name">
+									</div>
+									<div class="upload">
+										<h4>Files:</h4>
+										<table class="table">
+											<thead>
+												<tr>
+													<th width="50%">Name</th>
+													<th>Size</th>
+													<th>Progress</th>
+													<th>Actions</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr ng-repeat="x in files">
+													<td><strong>{{ x.name }}</strong></td>
+													<td nowrap>{{ x.size/1024/1024|number:2 }} MB</td>
+													<td>
+														<span class="progress">
+                                                    <div ng-bind="x.progress + '%'"></div>
+                                                </span>
+													</td>
+													<td nowrap>
+														<button type="button" class="btn btn-danger btn-xs" ng-click="x.upload.abort()">
+                                                    <span class="glyphicon glyphicon-cancel"></span> Abort
+                                                </button>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+										<div>
+											<!-- Drop zone -->
+											<div class="well well-lg drop-box" ngf-drop="addFile($files)" ngf-multiple="true" ngf-drag-over-class="dragover" ngf-allow-dir="true"
+												ngf-drop-available="true" ngf-keep="true 'distinct'">
+												Drag & drop your files
+											</div>
+											<div ngf-no-file-drop>File Drag/Drop is not supported for this browser</div>
+											<input type="file" ngf-select="addFile($files)" ngf-keep="true 'distinct'" multiple>
+										</div>
+									</div>
+									<br/>
+									<div id="uploadwarnings"></div>
+									<button class="btn btn-success" type="button" ng-click="uploadFiles()">Upload</button>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- modal-content -->
+		</div>
+		<!-- modal-dialog -->
+
         <!-- Carousel -->
         <div class="container">
             <div id="myCarousel" class="carousel slide" data-ride="carousel">
@@ -207,7 +274,8 @@
                         <h2>Register</h2>
                         <p>Sign up today to make use of the best paperless office on the web. Get started immediately with a
                             free account.</p>
-                        <p><a class="btn btn-default" href="#" role="button">Register Now »</a></p>
+                        <p><a class="btn btn-default" data-toggle="modal" data-target="#loginModal"
+                                        role="button">Register Now »</a></p>
                     </div>
                     <!-- /.col-lg-4 -->
                     <div class="col-lg-4">
@@ -215,7 +283,7 @@
                         <h2>Upload</h2>
                         <p>Get started immediately. Make your life that much easier and upload your first document today with
                             our easy to use interface.</p>
-                        <p><a class="btn btn-default" href="#" role="button">Upload Now »</a></p>
+                        <p><a class="btn btn-default" ng-disabled="!loggedin" role="button" data-toggle="modal" data-target="#uploadModal">Upload Now »</a></p>
                     </div>
                     <!-- /.col-lg-4 -->
                     <div class="col-lg-4">
@@ -223,7 +291,7 @@
                         <h2>Sort</h2>
                         <p>Search no longer and start sorting your documents online. With a decent amount of functionalities
                             let our website search for you.</p>
-                        <p><a class="btn btn-default" href="#" role="button">Sort Now »</a></p>
+                        <p><a class="btn btn-default" ng-disabled="!loggedin" role="button" href="FileOverview.html">Sort Now »</a></p>
                     </div>
                     <!-- /.col-lg-4 -->
                 </div>

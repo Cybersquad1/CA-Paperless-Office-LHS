@@ -497,3 +497,9 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     init();
 });
+
+app.filter('reformatName',function(){
+    return function(text){        
+        return text.replace(/_|-/g,' ');
+    }
+})

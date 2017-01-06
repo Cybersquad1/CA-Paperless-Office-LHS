@@ -169,7 +169,7 @@
 			<div class="filesdiv " ng-class="filedivclass">
 				<div class="row row-centered">
 					<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file)">
-						<h4 style="margin-left:5%;">{{file.name}}</h4>
+						<h4 style="margin-left:5%;">{{file.name | reformatName}}</h4>
 						<img class="fileimg" src="{{file.url}}">
 						<div>
 							<div class="tagdiv" ng-repeat="tag in file.tags">
