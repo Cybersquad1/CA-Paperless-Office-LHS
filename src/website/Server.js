@@ -14,6 +14,8 @@ var UH = require('./UserHandler.js');
 var EE = require('./ErrorEvent.js');
 var UserHandler = new UH(debug);
 
+var helmet = require('helmet');
+
 if (debug) {
     console.log('Application is running in debug mode!');
 }
@@ -46,14 +48,28 @@ UserHandler.Init(app, function (err) {
         Log("ERROR: FAILED!");
     }
 
-    app.use(bodyparser.json());
+    //https
 
-    app.use(function (req, res, next) {
-        res.header("Acces-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-        res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
-        next();
-    });
+    if (!debug) {
+        app.use(function (req, res, next) {
+            var isAzure = req.get('x-site-deployment-id');
+            var isSsl = req.get('x-arr-ssl');
+
+            if (isAzure && !isSsl) {
+                return res.redirect('https://' + req.get('host') + req.url);
+            }
+
+            return next();
+        });
+
+        app.use(helmet.hsts({
+            "maxAge": 10886400000,     // Must be at least 18 weeks to be approved by Google
+            "includeSubdomains": true, // Must be enabled to be approved by Google
+            "preload": true
+        }));
+    }
+
+    app.use(bodyparser.json());
 
     api.API_KEY = apikey.api_key_cv;
 
@@ -289,8 +305,8 @@ UserHandler.Init(app, function (err) {
         });
     });
 
-    app.post('/updatecontent', function(req, res){
-        UserHandler.UpdateContent(req.session, req.body.userid, req.body.document, req.body.content, function(match, result){
+    app.post('/updatecontent', function (req, res) {
+        UserHandler.UpdateContent(req.session, req.body.userid, req.body.document, req.body.content, function (match, result) {
             res.json({
                 "match": match,
                 "result": result
