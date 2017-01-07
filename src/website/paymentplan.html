@@ -38,65 +38,66 @@
 	<div ng-app="myApp" ng-controller="PaperlessController">
 		<!-- Navbar -->
 		<nav class="navbar navbar-inverse navbar-fixed-top">
-			<div class="container">
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false"
-						aria-controls="navbar">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false"
+                        aria-controls="navbar">
                             <span class="sr-only">Toggle navigation</span>
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </button>
-					<a class="navbar-brand" href="#">Paperless Office</a>
-				</div>
-				<div id="navbar" class="navbar-collapse collapse">
-					<ul class="nav navbar-nav navbar-right">
-						<li class="active"><a href="index.html">Home</a></li>
-						<li ng-show="loggedin || registered"><a href="FileOverview.html">Overview page</a></li>
-						<li ng-hide="loggedin || registered"><a href="#" data-toggle="modal" data-target="#loginModal">Login/Register</a></li>
-						<li ng-show="loggedin || registered"><a href="#">Welcome, {{user.username}}</a></li>
-						<li ng-show="loggedin || registered"><a href="#" ng-click="logout()">Log Out</a></li>
-					</ul>
-				</div>
-			</div>
-		</nav>
-	</div>
+                    <a class="navbar-brand" href="#">Paperless Office</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li ><a href="index.html">Home</a></li>
+                        <li class="active"><a href="Paymentplan.html">Paymentplan</a></li>
+                        <li ng-show="loggedin"><a href="FileOverview.html">FileOverview</a></li>
+                        <li ng-hide="loggedin"><a href="#" data-toggle="modal" data-target="#loginModal">Login/Register</a></li>
+                        <li ng-show="loggedin"><a href="#">Welcome, {{user.username}}</a></li>
+                        <li ng-show="loggedin"><a href="#" ng-click="logout()">Log Out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
 
-	<div class="container">
-		<div class="row row-centered">
-			<div class="col-sm-6 col-md-3 col-centered">
-				<div class="thumbnail">
-					<div class="caption">
-						<h3>25MB / Month <br> 25 IMG up / Day <br> <br> FREE</h3>
-						<a ng-show="" href="" class="btn btn-default" role="button" ng-click="Buy()">Free</a> </div>
-				</div>
-			</div>
-			<div class="col-sm-6 col-md-3 col-centered">
-				<div class="thumbnail">
-					<div class="caption">
-						<h3>100MB / Month <br> 100 IMG up / Day <br> <br> €9,99</h3>
-						<a ng-show="" href="" class="btn btn-default" role="button" ng-click="Buy()">Buy</a>
-					</div>
-				</div>
-			</div>
-			<div class="col-sm-6 col-md-3 col-centered">
-				<div class="thumbnail">
-					<div class="caption">
-						<h3>1TB / Month <br> 500 IMG up / Day <br> <br> €19,99</h3>
-						<a ng-show="" href="" class="btn btn-default" role="button" ng-click="Buy()">Buy</a>
-					</div>
-				</div>
-			</div>
-
-		</div>
-	</div>
-
-	<footer class="col-sm-12 footer">
 		<div class="container">
-			<p class="pull-right"><a href="#">Back to top</a></p>
-			<p>&copy; 2016 LHS</p>
+			<div class="row row-centered">
+				<div class="col-sm-6 col-md-3 col-centered">
+					<div class="thumbnail">
+						<div class="caption">
+							<h3>25MB / Month <br> 25 IMG up / Day <br> <br> FREE</h3>
+							<a ng-show="" href="" class="btn btn-default" role="button" ng-click="Buy()">Free</a> </div>
+					</div>
+				</div>
+				<div class="col-sm-6 col-md-3 col-centered">
+					<div class="thumbnail">
+						<div class="caption">
+							<h3>100MB / Month <br> 100 IMG up / Day <br> <br> €9,99</h3>
+							<a ng-show="" href="" class="btn btn-default" role="button" ng-click="Buy()">Buy</a>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-6 col-md-3 col-centered">
+					<div class="thumbnail">
+						<div class="caption">
+							<h3>1TB / Month <br> 500 IMG up / Day <br> <br> €19,99</h3>
+							<a ng-show="" href="" class="btn btn-default" role="button" ng-click="Buy()">Buy</a>
+						</div>
+					</div>
+				</div>
+
+			</div>
 		</div>
-	</footer>
+
+		<footer class="col-sm-12 footer">
+			<div class="container">
+				<p class="pull-right"><a href="#">Back to top</a></p>
+				<p>&copy; 2016 LHS</p>
+			</div>
+		</footer>
+	</div>
 </body>
 
 </html>

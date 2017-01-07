@@ -32,6 +32,10 @@
 	<!-- Stylesheets -->
 	<link href="/css/carousel.css" rel="stylesheet">
 	<link href="/css/FileOverview.css" rel="stylesheet">
+	<!--for datetime picker-->
+	<script type="text/javascript" src="/js/moment.js"></script>
+	<script type="text/javascript" src="/js/bootstrap-datetimepicker.min.js"></script>
+	<link href="/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -53,7 +57,8 @@
 				<div id="navbar" class="navbar-collapse collapse">
 					<ul class="nav navbar-nav navbar-right">
 						<li><a href="index.html">Home</a></li>
-						<li class="active"><a href="#">Overview page</a></li>
+                        <li><a href="Paymentplan.html">Paymentplan</a></li>
+						<li class="active"><a href="#">FileOverview</a></li>
 						<li><a>Welcome, {{user.username}}</a></li>
 						<li><a href="#" data-toggle="modal" data-target="#uploadModal">Upload</a></li>
 						<li ng-if="loggedin"><a href="#" ng-click="logout()">Log Out</a></li>
@@ -130,45 +135,53 @@
 
 		<!--</div>-->
 		<div class="container">
-			<div class="col-md-3">
+			<div class="col-md-4">
 				<div class="filterdiv col-md-11 col-xs-11" ng-show="filtershow">
 					<h2>Filter:</h2>
-					<label><input type="checkbox" value="">Content</label>
-					<input type="text" class="form-control" id="">
-					<label><input type="checkbox" value="">Date</label>
+					<label><input type="checkbox" ng-model="contentfilterCheckbox" ng-change="filterchange()">Content</label>
+					<input type="text" class="form-control" id="" ng-model="contentfilterText" ng-change="filterchange('content')">
+					<label><input type="checkbox" ng-model="datefilterCheckbox" ng-change="filterchange()">Date</label>
 					<div class="form-group row">
 						<label class="col-xs-2">From:</label>
-						<div class="col-xs-10">
-							<input type="text" class="form-control" id="">
+						<div class='input-group date' id='fromdt'>
+							<input type='text' class="form-control" ng-model="datefilterfrom" ng-change="filterchange('date')" />
+							<span class="input-group-addon">
+                        		<span class="glyphicon glyphicon-calendar"></span>
+							</span>
 						</div>
 					</div>
 					<div class="form-group row">
 						<label class="col-xs-2">To:</label>
-						<div class="col-xs-10">
-							<input type="text" class="form-control" id="">
+						<div class='input-group date' id='todt'>
+							<input type='text' class="form-control" ng-model="datefilterto" ng-change="filterchange('date')" />
+							<span class="input-group-addon">
+                        		<span class="glyphicon glyphicon-calendar"></span>
+							</span>
 						</div>
 					</div>
-					<label><input type="checkbox" value="">Name</label>
-					<input type="text" class="form-control" id="">
-					<label><input type="checkbox" value="">Tags</label>
-					<input style="margin-bottom:5%;" type="text" class="form-control" id="">
+					<label><input type="checkbox" value="" ng-model="namefilterCheckbox" ng-change="filterchange()">Name</label>
+					<input type="text" class="form-control" id="" ng-model="namefilterText" ng-change="filterchange('name')">
+					<label><input type="checkbox" value="" ng-model="tagfilterCheckbox" ng-change="filterchange()">Tag</label>
+					<input style="margin-bottom:5%;" type="text" class="form-control" id="" ng-model="tagfilterText" ng-change="filterchange('tag')">
 				</div>
 				<button class="filterbutton" ng-click="filtershowbtnclick()"><span>{{filterBtnText}}</span></button>
-			
 			</div>
 			<div class="filesdiv " ng-class="filedivclass">
 				<div class="row row-centered">
-					<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file.name)">
-						<h4>id:{{file.id}}</h4>
-						<img src="{{file.url}}">
+					<div class="filediv col-centered" ng-repeat="file in userfiles" ng-click="fileclick(file)">
+						<h4 style="margin-left:5%;">{{file.name | reformatName}}</h4>
+						<img class="fileimg" src="{{file.url}}">
 						<div>
 							<div class="tagdiv" ng-repeat="tag in file.tags">
-								<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.name}}</span>
+								<span class="label label-default" ng-style="{'background-color':tag.color}">{{tag.tag}}</span>
 							</div>
 							<div>
-								<p style="margin-top:10px;margin-bottom:0px" align="right">{{file.date}}</p>
+								<p style="margin-top:10px;margin-bottom:0px; margin-right:5% ;" align="right">{{file.date | date : 'd-M-y H:mm'}}</p>
 							</div>
 						</div>
+					</div>
+					<div class="row">
+						<button id="showmorebutton" class="btn" style="margin:auto;" ng-click="LoadMoreFiles()">Show More</button>
 					</div>
 				</div>
 			</div>

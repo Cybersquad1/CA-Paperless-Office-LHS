@@ -14,6 +14,9 @@ var azure = require('azure-storage');
 var azureconfig = require('./azure.json');
 var blobSvc = azure.createBlobService(azureconfig.connectionstring);
 var crypto = require('crypto');
+var request = require('request');
+var apikey = require('./ApiKey.json');
+var fs = require('fs');
 
 /**
  * @constructor
@@ -72,10 +75,9 @@ module.exports = function (debug) {
         }
 
         function CheckDocumentTable() {
-            // TODO: check the table
             db.Exists(sql,
                 'documents',
-                'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid int);', undefined,
+                'CREATE TABLE documents([id] int IDENTITY(1,1) PRIMARY KEY, name varchar(255), userid INT, date DATETIME, content varchar(2000));', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -89,6 +91,32 @@ module.exports = function (debug) {
             db.Exists(sql,
                 'files',
                 'CREATE TABLE files([id] int IDENTITY(1,1) PRIMARY KEY, document int, type int, name varchar(255), size int);', undefined,
+                function (err) {
+                    if (err !== undefined) {
+                        initCallback(err);
+                        return;
+                    }
+                    CheckTagTable();
+                });
+        }
+
+        function CheckTagTable() {
+            db.Exists(sql,
+                'tags',
+                'CREATE TABLE tags([id] int IDENTITY(1,1) PRIMARY KEY, tag varchar(255), color varchar(255), userid INT);', undefined,
+                function (err) {
+                    if (err !== undefined) {
+                        initCallback(err);
+                        return;
+                    }
+                    CheckTagLinkedTable();
+                });
+        }
+
+        function CheckTagLinkedTable() {
+            db.Exists(sql,
+                'linked',
+                'CREATE TABLE linked([id] int IDENTITY(1,1) PRIMARY KEY, documentid int, tagid int);', undefined,
                 function (err) {
                     if (err !== undefined) {
                         initCallback(err);
@@ -124,16 +152,17 @@ module.exports = function (debug) {
             if (value.length > 200) {
                 return { "error": name + " has a maximum of 200 characters." };
             }
-            var match = value.match(/^[0-9,\+-@.A-Za-z ]+$/);
+            var match = value.match(/^[0-9,\+-@_.A-Za-z ]+$/);
             if (match === null || match === undefined) {
-                return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-\\@. are allowed." };
+                return { "error": name + " contains illegal characters. Only letters, numbers, spaces and +-_\\@. are allowed." };
             }
         }
 
-        function createDocument(name, userid, callback) {
+        function createDocument(name, userid, date, callback) {
             var document = {
                 "name": name,
-                "userid": userid
+                "userid": userid,
+                "date": date
             };
             db.InsertObject(sql, 'documents', document, function (match, recordset) {
                 if (!match || recordset.length < 1) {
@@ -145,15 +174,164 @@ module.exports = function (debug) {
             }, { "inserted": "id" });
         }
 
+        function GetTags(userid, documentid, callback) {
+            var options = { "select": "*", "table": "tags", "equals": [{ "userid": userid }] };
+            if (documentid) {
+                options.join = { "table": "linked", "on": ["tags.id", "linked.tagid"] };
+                options.equals.push({ "documentid": documentid });
+            }
+            db.QueryObject(sql, options, callback);
+            //db.Query(sql, "SELECT tag,color FROM linked INNER JOIN tags ON linked.tagid=tags.id WHERE linked.documentid = @did;", { "did": documentid }, callback);
+        }
+
+        this.GetTags = function (session, userid, documentid, callback) {
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            GetTags(userid, documentid, callback);
+        }
+
+        function AddTag(name, color, userid, callback) {
+            var tag = {
+                "tag": name,
+                "color": color,
+                "userid": userid
+            };
+            db.QueryObject(sql, { "insert": tag, "table": "tags" }, callback);
+        }
+
+        this.AddTag = function (session, name, color, userid, callback) {
+            if (this.GetIdFromSession(session) != userid) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            AddTag(name, color, userid, callback);
+        }
+
+        function AddTagToDocument(documentid, tagid, callback) {
+            var tag = {
+                "documentid": documentid,
+                "tagid": tagid
+            };
+            db.QueryObject(sql, { "select": "*", "table": "linked", "equals": tag }, function (m) {
+                if (m) {
+                    db.QueryObject(sql, { "delete": "*", "table": "linked", "equals": tag }, callback);
+                }
+                else {
+                    db.QueryObject(sql, { "insert": tag, "table": "linked" }, callback);
+                }
+            });
+        }
+
+        this.AddTagToDocument = function (session, documentid, tagid, userid, callback) {
+            if (this.GetIdFromSession(session) != userid) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            AddTagToDocument(documentid, tagid, callback);
+        }
+
+        function GetThumbnail(documentid, type, callback) {
+            var options = { "select": "id, document", "table": "files", "equals": [{ "document": documentid, "type": type }] };
+            db.QueryObject(sql, options, callback);
+        }
+
         function getDocument(object, callback) {
-            db.MatchObject(sql, 'documents', object, function (match, recordset) {
+            var row = object.row || 1;
+            var options = { "sort": 'documents.id DESC', "limit": { "low": ((row - 1) * 20) + 1, "high": row * 20 }, "join": [], "equals": [], "like": [], "between": [], "distinct": true, "select": "documents.date,documents.id,documents.name", "table": "documents"};
+            if (!object.userid) {
+                callback(false, "No userid");
+            }
+            options.equals.push({ "documents.userid": object.userid });
+            if (object.name) {
+                options.like.push({ "name": object.name });
+            }
+            if (object.tag) {
+                options.join.push({ "table": "linked", "on": ["linked.documentid", "documents.id"] });
+                options.join.push({ "table": "tags", "on": ["linked.tagid", "tags.id"] });
+                options.equals.push({ "tag": object.tag });
+            }
+            if (object.date) {
+                options.between.push({ "date": [new Date(object.date.from), new Date(object.date.to)] });
+            }
+            if (object.content) {
+                options.like.push({ "content": object.content });
+            }
+            db.QueryObject(sql, options, function (match, recordset) {
                 if (!match) {
                     callback(false, "Data not found");
                     return;
                 }
-                callback(true, recordset);
-                return;
-            }, 'id');
+                var length = recordset.length;
+                var done = 0;
+                for (let i = 0; i < length; i++) {
+                    delete recordset[i].RowNumber;
+                    GetTags(object.userid, recordset[i].id, function (mmm, rs) {
+                        if (mmm) {
+                            recordset[i].tags = rs;
+                        }
+                        else {
+                            recordset[i].tags = [];
+                        }
+                        done++;
+                        if (done === length * 2) {
+                            callback(true, recordset);
+                            return;
+                        }
+                    });
+                    GetThumbnail(recordset[i].id, thumbnail, function (mm, rs) {
+                        if (mm) {
+                            recordset[i].url = "/download?userid=" + object.userid + "&documentid=" + rs[0].document + "&fileid=" + rs[0].id;
+                        }
+                        else {
+                            recordset[i].url = "";
+                        }
+                        done++;
+                        if (done === length * 2) {
+                            callback(true, recordset);
+                            return;
+                        }
+                    });
+                }
+            });
+        }
+
+        function GetDetailDocument(userid, documentid, callback) {
+            db.QueryObject(sql, { "equals": { "userid": userid, "id": documentid }, "select": "documents.*", "table": "documents" }, function (match, recordset) {
+                if (!match || recordset.length !== 1) {
+                    callback(false, "Data not found");
+                    return;
+                }
+                GetTags(userid, recordset[0].id, function (mmm, rs) {
+                    if (mmm) {
+                        recordset[0].tags = rs;
+                    }
+                    else {
+                        recordset[0].tags = [];
+                    }
+                    GetThumbnail(recordset[0].id, original, function (mm, rs) {
+                        if (mm) {
+                            recordset[0].url = "/download?userid=" + userid + "&documentid=" + rs[0].document + "&fileid=" + rs[0].id;
+                        }
+                        else {
+                            recordset[0].url = "";
+                        }
+                        callback(true, recordset);
+                    });
+                    return;
+                });
+            });
+        }
+
+        function checkDocument(userid, documentid, callback) {
+            db.QueryObject(sql, { "equals": { "userid": userid, "id": documentid }, "select": "documents.*", "table": "documents" }, function (match, recordset) {
+                if (!match || recordset.length !== 1) {
+                    callback(false);
+                    return;
+                }
+                callback(true, recordset[0]);
+            });
         }
 
         function createFile(document, type, name, size, callback) {
@@ -193,6 +371,15 @@ module.exports = function (debug) {
             else {
                 callback(false);
                 return;
+            }
+        };
+
+        this.GetIdFromSession = function (session) {
+            if (session.user && session.user.id && session.user.loggedin) {
+                return session.user.id;
+            }
+            else {
+                return -1;
             }
         };
 
@@ -293,16 +480,17 @@ module.exports = function (debug) {
                         callback(false, "Email is already in use");
                         return;
                     }
-                    db.InsertObject(sql, 'users', user, function (success) {
+                    db.InsertObject(sql, 'users', user, function (success, result) {
                         if (!success) {
                             callback(false, "Database query failed");
                             return;
                         }
                         delete user.password;
                         delete user.salt;
+                        user.id = result[0].id;
                         callback(true, user);
                         return;
-                    });
+                    }, { "inserted": "id" });
                 });
             });
         };
@@ -313,54 +501,256 @@ module.exports = function (debug) {
                     callback(false, id);
                     return;
                 }
-                blobSvc.createBlockBlobFromStream('paperless', id + ".blob", stream, stream.size, function (error) {
+                var ret = function (error) {
                     if (error) {
                         ErrorEvent.HError(error, 1);
                         callback(false, 'error uploading to blob');
                         return;
                     }
-                    callback(true, documentid, id);
-                });
+                    if (type === original) {
+                        var str = fs.createReadStream(stream.path);
+                        GenerateThumbnail(documentid, str, function (s, e) {
+                            if (!s) {
+                                ErrorEvent.HError(e, 0);
+                            }
+                            var str2 = fs.createReadStream(stream.path);
+                            GenerateKeywords(documentid, str2, function (s2, e2) {
+                                if (!s2) {
+                                    ErrorEvent.HError(e2, 0);
+                                }
+                                callback(true, documentid, id);
+                            });
+                        });
+                    }
+                    else {
+                        callback(true, documentid, id);
+                    }
+                };
+                if (stream.istext) {
+                    blobSvc.createBlockBlobFromText('paperless', id + ".blob", stream.text, ret);
+                }
+                else {
+                    blobSvc.createBlockBlobFromStream('paperless', id + ".blob", stream, stream.size, ret);
+                }
             });
         }
 
         // upload types
         var original = 1;
         var imagepage = 2;
+        var thumbnail = 3;
 
-        this.Upload = function (session, stream, userid, documentid, callback) {
+        this.Upload = function (session, data, userid, documentid, callback) {
             if (callback === undefined) {
                 callback = documentid;
                 documentid = undefined;
             }
-            this.GetUserFromSession(session, function (match, user) {
-                if (!match) {
-                    callback(false, 'User not logged in');
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            if (documentid !== undefined) {
+                rawUpload(documentid, original, data.stream, callback);
+            }
+            else {
+                createDocument(data.filename, userid, data.date, function (success, id) {
+                    if (!success) {
+                        callback(false, id);
+                        return;
+                    }
+                    rawUpload(id, original, data.stream, callback);
+                });
+            }
+        };
+
+        this.Download = function (session, userid, documentid, fileid, callback) {
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            checkDocument(userid, documentid, function (m, d) {
+                if (!m) {
+                    callback(false, "document not from user");
                     return;
                 }
-                if (user.id !== userid) {
-                    callback(false, "User id's not the same");
-                    return;
-                }
-                if (documentid !== undefined) {
-                    rawUpload(documentid, original, stream, callback);
-                }
-                else {
-                    createDocument(stream.filename, user.id, function (success, id) {
-                        if (!success) {
-                            callback(false, id);
-                            return;
-                        }
-                        rawUpload(id, original, stream, callback);
-                    });
-                }
+                db.QueryObject(sql, { "equals": { "document": documentid, "id": fileid }, "select": "name", "table": "files" }, function (match, recordset) {
+                    if (!match || recordset.length !== 1) {
+                        callback(false, "File not found");
+                        return;
+                    }
+                    var stream = blobSvc.createReadStream('paperless', fileid + '.blob');
+                    callback(true, stream, recordset[0].name);
+                });
             });
         };
 
-        this.Download = function (id, callback) {
-            var stream = blobSvc.createReadStream('paperless', id + '.blob');
-            callback(stream);
+        this.GetDocuments = function (session, userid, filter, callback) {
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            filter = filter || {};
+            filter.userid = userid;
+            getDocument(filter, callback);
         };
+
+        this.GetDetailDocument = function (session, userid, documentid, callback) {
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            GetDetailDocument(userid, documentid, callback);
+        };
+
+        this.GetFiles = function (session, userid, documentid, callback) {
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            checkDocument(userid, documentid, function (match) {
+                if (!match) {
+                    callback(false, "Data not found");
+                    return;
+                }
+                db.MatchObject(sql, 'files', { "document": documentid }, callback);
+            });
+        };
+
+        this.DeleteFiles = function (session, userid, documentid, callback) {
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            checkDocument(userid, documentid, function (match) {
+                if (!match) {
+                    callback(false, "Document not from user");
+                    return;
+                }
+                db.QueryObject(sql, { "delete": "*", "table": "documents", "equals": { "id": documentid } }, function () {
+                    db.QueryObject(sql, { "delete": "*", "table": "files", "equals": { "document": documentid } }, function () {
+                        db.QueryObject(sql, { "delete": "*", "table": "linked", "equals": { "documentid": documentid } }, callback);
+                    });
+                });
+            });
+        }
+
+        this.UpdateContent = function (session, userid, documentid, content, callback) {
+            if (this.GetIdFromSession(session) !== userid || userid === -1) {
+                callback(false, "User id's not the same");
+                return;
+            }
+            checkDocument(userid, documentid, function (match) {
+                if (!match) {
+                    callback(false, "Document not from user");
+                    return;
+                }
+                db.Query(sql, "UPDATE documents SET content = @content WHERE id = @id", { 'id': documentid, 'content': content }, callback);
+            });
+        }
+
+        function GenerateThumbnail(documentid, stream, callback) {
+            request({
+                method: 'POST',
+                url: 'https://api.projectoxford.ai/vision/v1.0/generateThumbnail?width=100&height=150&smartCropping=true',
+                headers: {
+                    'Content-type': 'application/octet-stream',
+                    'Ocp-Apim-Subscription-Key': apikey.api_key_cv
+                },
+                encoding: null,
+                body: stream
+            }, function (error, response, result) {
+                if (!error && response.statusCode === 200) {
+                    var str = { istext: true, originalFilename: "thumbnail.jpg", text: result, size: result.length * 8 };
+                    //var buf = Buffer.from(result);
+                    //Image upload naar database
+                    //buf.originalFilename = "thumbnail.jpg";
+                    //buf.size = buf.length;
+                    rawUpload(documentid, thumbnail, str, callback);
+                }
+                else {
+                    callback(false, "Generating thumbnail failed");
+                    return;
+                }
+            });
+        }
+
+        function GenerateKeywords(documentid, stream, callback) {
+            request({
+                method: 'POST',
+                url: 'https://api.projectoxford.ai/vision/v1.0/ocr?language=en&detectOrientation=true',
+                headers: {
+                    'Content-type': 'application/octet-stream',
+                    'Ocp-Apim-Subscription-Key': apikey.api_key_cv
+                },
+                body: stream
+            }, function (error, response, result) {
+                //console.log(result);
+                if (!error && response.statusCode === 200) {
+                    var jsondata = JSON.parse(result);
+                    var text = [];
+                    for (var i = 0; i < jsondata.regions.length; i++) {
+                        for (var o = 0; o < jsondata.regions[i].lines.length; o++) {
+                            for (var p = 0; p < jsondata.regions[i].lines[o].words.length; p++) {
+                                text.push(jsondata.regions[i].lines[o].words[p].text);
+                            }
+                            text[text.length - 1] += '.';
+                        }
+                    }
+                    text = text.join(' ');
+                    if (text.length > 0) {
+                        request({
+                            method: 'POST',
+                            url: 'https://westus.api.cognitive.microsoft.com/text/analytics/v2.0/keyPhrases',
+                            headers: {
+                                'Content-type': 'application/json',
+                                'Ocp-Apim-Subscription-Key': apikey.api_key_text
+                            },
+                            body: JSON.stringify({
+                                "documents": [
+                                    {
+                                        "language": "en",
+                                        "id": "1",
+                                        "text": text
+                                    }
+                                ]
+                            })
+                        }, function (error, response, result) {
+                            if (!error && response.statusCode === 200) {
+                                var res = JSON.parse(result);
+                                var finaltext = [];
+                                for (var i = 0; i < res.documents.length; i++) {
+                                    for (var o = 0; o < res.documents[i].keyPhrases.length; o++) {
+                                        finaltext.push(res.documents[i].keyPhrases[o]);
+                                    }
+                                }
+                                finaltext = finaltext.join(' ');
+                                db.Query(sql, "UPDATE documents SET content = coalesce(content + @content, @content) WHERE id = @id", { 'id': documentid, 'content': finaltext }, function (success) {
+                                    if (success) {
+                                        callback(true);
+                                        return;
+                                    }
+                                    callback(false, "Update failed");
+                                    return;
+                                });
+                                console.log(finaltext);
+                            }
+                            else {
+                                callback(false, "Failed to generate keywords");
+                                return;
+                            }
+                        });
+                    }
+                    else {
+                        callback(false, "No text");
+                    }
+                }
+                else {
+                    callback(false, "Invalid file type");
+                    return;
+                }
+            }
+            )
+        }
     };
     return this;
 };

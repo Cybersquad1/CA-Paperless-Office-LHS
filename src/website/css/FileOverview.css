@@ -23,7 +23,6 @@ body {
 
 .filterbutton{    
     padding: 1px;
-
     border-radius:0px 5px 5px 0px;  
     background-color: black;
     border: none;
@@ -39,6 +38,17 @@ body {
     border-color: black;
     border-width: 1px; 
     border-radius: 5px;
+    cursor:pointer; 
+    cursor: hand;
+}
+
+
+/* Little preview img */
+.fileimg{
+    max-width:95%;
+    margin:auto;
+    display:block;
+    max-height:150px ;
 }
 
 .col-centered {

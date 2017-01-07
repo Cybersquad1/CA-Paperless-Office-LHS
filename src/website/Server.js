@@ -4,11 +4,17 @@ var express = require('express');
 var bodyparser = require('body-parser');
 var app = express();
 
+var api = require('project-oxford-ocr-api');
+var request = require('request');
+var apikey = require('./ApiKey.json');
+
 var multiparty = require("multiparty");
 
 var UH = require('./UserHandler.js');
 var EE = require('./ErrorEvent.js');
 var UserHandler = new UH(debug);
+
+var helmet = require('helmet');
 
 if (debug) {
     console.log('Application is running in debug mode!');
@@ -42,14 +48,30 @@ UserHandler.Init(app, function (err) {
         Log("ERROR: FAILED!");
     }
 
+    //https
+
+    if (!debug) {
+        app.use(function (req, res, next) {
+            var isAzure = req.get('x-site-deployment-id');
+            var isSsl = req.get('x-arr-ssl');
+
+            if (isAzure && !isSsl) {
+                return res.redirect('https://' + req.get('host') + req.url);
+            }
+
+            return next();
+        });
+
+        app.use(helmet.hsts({
+            "maxAge": 10886400000,     // Must be at least 18 weeks to be approved by Google
+            "includeSubdomains": true, // Must be enabled to be approved by Google
+            "preload": true
+        }));
+    }
+
     app.use(bodyparser.json());
 
-    app.use(function (req, res, next) {
-        res.header("Acces-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-        res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
-        next();
-    });
+    api.API_KEY = apikey.api_key_cv;
 
     app.get("/getuser", function (req, res) {
         UserHandler.GetUserFromSession(req.session, function (match, user) {
@@ -132,33 +154,13 @@ UserHandler.Init(app, function (err) {
     app.get('/paymentplan.html', function (req, res) {
         res.sendFile(__dirname + "/" + "paymentplan.html");
     });
-
+    app.get('/detailview.html', function (req, res) {
+        res.sendFile(__dirname + "/" + "detailview.html");
+    });
 
     app.post("/upload", function (req, res) {
         var form = new multiparty.Form();
-        var id, file;
-
-        /*form.on('part', function (part) {
-
-            partstream = part;
-            if (!part.filename) return;
-            var size = part.byteCount;
-            var name = part.filename;
-            console.log(part);
-            console.log("size:" + size + " Filename:" + name);
-            UserHandler.Upload(req.session, part,id, function (success, err) {
-                if (!success) {
-                    console.log(err);
-                }
-            });
-
-        });
-        form.on("field", function (name, value) {
-            var id = value
-            console.log("name: " + name + ", value: " + value)
-        });   
-        form.parse(req);
-        */
+        var file, id;
 
         form.parse(req, function (error, fields, files) {
             if (error) {
@@ -180,11 +182,14 @@ UserHandler.Init(app, function (err) {
             if (fields.document === undefined) {
                 res.json({ "success": false, "error": "No name supplied" });
             }
+            if (fields.date === undefined) {
+                res.json({ "success": false, "error": "No date supplied" });
+            }
             var str = fs.createReadStream(file.path);
-            str.filename = fields.document[0];
             str.size = file.size;
             str.originalFilename = file.originalFilename;
-            UserHandler.Upload(req.session, str, id, documentid, function (success, idOrError, fileid) {
+            var data = { "stream": str, "filename": fields.document[0], "date": fields.date };
+            UserHandler.Upload(req.session, data, id, documentid, function (success, idOrError, fileid) {
                 if (success) {
                     console.log("Uploaded: " + file.originalFilename + ":" + file.size);
                     res.json({ "success": success, "document": idOrError, "file": fileid });
@@ -196,15 +201,116 @@ UserHandler.Init(app, function (err) {
                 fs.unlinkSync(file.path);
             });
         });
+    });
 
+    app.post('/getdocuments', function (req, res) {
+        UserHandler.GetDocuments(req.session, req.body.userid, req.body.filter, function (match, result) {
+            var response;
+            if (match) {
+                response = {
+                    "match": match,
+                    "documents": result
+                };
+            }
+            else {
+                response = {
+                    "match": match,
+                    "error": result
+                };
+            }
+            res.json(response);
+        });
+    });
 
+    app.post('/getdetaildocument', function (req, res) {
+        UserHandler.GetDetailDocument(req.session, req.body.userid, req.body.document, function (match, result) {
+            var response;
+            if (match) {
+                UserHandler.GetTags(req.session, req.body.userid, undefined, function (m, rs) {
+                    if (m) {
+                        response = {
+                            "match": match,
+                            "document": result[0],
+                            "tags": rs
+                        };
+                    }
+                    else {
+                        response = {
+                            "match": match,
+                            "document": result[0],
+                            "tags": []
+                        };
+                    }
+                    UserHandler.GetFiles(req.session, req.body.userid, req.body.document, function (ma, r) {
+                        response.files = r;
+                        res.json(response);
+                    });
+                });
+            }
+            else {
+                response = {
+                    "match": match,
+                    "error": result
+                };
+            }
+        });
+    });
 
+    app.post('/addtag', function (req, res) {
+        UserHandler.AddTag(req.session, req.body.name, req.body.color, req.body.userid, function (match, result) {
+            res.json({
+                "match": match,
+                "result": result
+            });
+        });
+    });
+
+    app.post('/addtagtodocument', function (req, res) {
+        UserHandler.AddTagToDocument(req.session, req.body.document, req.body.tag, req.body.userid, function (match, result) {
+            res.json({
+                "match": match,
+                "result": result
+            });
+        });
     });
 
     app.get('/download', function (req, res) {
-        UserHandler.Download(5, function (stream) {
-            res.set('Content-disposition', 'attachment; filename=' + 'name.jpg');
-            stream.pipe(res);
+        if (!req.query || !req.query.userid || !req.query.documentid || !req.query.fileid) {
+            res.end("File not found");
+            return;
+        }
+        var userid = Number(req.query.userid);
+        var documentid = Number(req.query.documentid);
+        var fileid = Number(req.query.fileid);
+        UserHandler.Download(req.session, userid, documentid, fileid, function (match, stream, name) {
+            if (match) {
+                res.set('Content-disposition', 'attachment; filename=' + name);
+                stream.pipe(res);
+            }
+            else {
+                res.json({
+                    "match": match,
+                    "error": stream
+                });
+            }
+        });
+    });
+
+    app.post('/deletefiles', function (req, res) {
+        UserHandler.DeleteFiles(req.session, req.body.userid, req.body.document, function (match, result) {
+            res.json({
+                "match": match,
+                "result": result
+            });
+        });
+    });
+
+    app.post('/updatecontent', function (req, res) {
+        UserHandler.UpdateContent(req.session, req.body.userid, req.body.document, req.body.content, function (match, result) {
+            res.json({
+                "match": match,
+                "result": result
+            });
         });
     });
 

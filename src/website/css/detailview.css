@@ -1,0 +1,95 @@
+body { 
+    padding-top: 65px;
+}
+
+.button{
+  margin-top: 20px;
+}
+
+.suggestiondiv{
+    margin-bottom:50px;
+    margin-top:40px;
+    border:solid black;
+}
+
+textarea {
+     width: 100%;
+     -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+     -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+     box-sizing: border-box;         /* Opera/IE 8+ */
+}
+
+.tagdiv{
+    display:inline-block;
+    margin-left:10px;
+}
+.tagdiv p{
+    margin:0px; 
+}
+
+.filterdiv{
+    border-style:solid;
+    border-color: black;
+    border-width: 2px;
+    border-radius:5px 0px 5px 5px;  
+}
+
+.col-centered {
+    display:inline-block;
+    float:none;
+    /* reset the text-align */
+    text-align:left;
+    /* inline-block space fix */
+    margin-right:-4px;
+}
+
+.row-centered {
+    text-align:center;
+}
+
+.filediv{
+    width:150px;
+    margin:10px;
+    float:left; 
+    border-style:solid;
+    border-color: black;
+    border-width: 1px; 
+    border-radius: 5px;
+    cursor:pointer; 
+    cursor: hand;
+}
+
+.btn-group {
+    display: flex;
+}
+
+
+/* Little preview img */
+.fileimg{
+    max-width:95%;
+    margin:auto;
+    display:block;
+    max-height:150px ;
+}
+
+.filesdiv{
+    margin-bottom: 40px;
+}
+
+
+/* Footer
+------------------*/
+footer {
+  background-color: #1b1b1b;
+  /*border-radius: 3px;*/
+  color: #ffffff;
+  height: 40px;
+  margin-top: 20px;
+  padding-top: 10px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;    
+}
