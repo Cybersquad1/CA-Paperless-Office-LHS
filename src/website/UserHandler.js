@@ -518,7 +518,7 @@ module.exports = function (debug) {
                                 if (!s2) {
                                     ErrorEvent.HError(e2, 0);
                                 }
-                                callback(true);
+                                callback(true, documentid, id);
                             });
                         });
                     }
