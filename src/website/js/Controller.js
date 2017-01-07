@@ -255,11 +255,10 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         });
     }
 
-    function LoadSuggestions(currentdetailfile) {
-        //console.log(tags);
+    function LoadSuggestions(currentdetailfile) {        
         $scope.userfiles = [];
         var tags = currentdetailfile.tags;
-        console.log(tags);
+        //console.log(tags);
 
         for (let i = 0; i < tags.length; i++) {
             var tagfilter = {};
@@ -272,13 +271,13 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
                     for (var p = 0; p < response.data.documents.length; p++) {
                         var found = false;
                         if (response.data.documents[p].id == currentdetailfile.id) {
-                            found=true;
+                            found = true;
                         } else {
-                            for (var o = 0; o < $scope.userfiles.length; o++) {                                
+                            for (var o = 0; o < $scope.userfiles.length; o++) {
                                 if ($scope.userfiles[o].id == response.data.documents[p].id) {
                                     found = true;
                                     break;
-                                }                                
+                                }
                             };
                         }
                         if (!found) {
@@ -350,7 +349,11 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             if ($scope.detailfile.tags) {
                 LoadSuggestions($scope.detailfile);
             }
-            console.log()
+            $scope.detailurlarray = new Array();
+            for (var i = 0; i < $scope.downloadfiles.length; i++) {
+                if ($scope.downloadfiles[i].type != 3) $scope.detailurlarray.push($scope.downloadfiles[i]);
+            }
+
             //else {
             //console.log($scope.detailfile);
             //}
@@ -382,11 +385,11 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     $scope.saveDetailContent = function () {
         //console.log($scope.detailfile.content);
-        $http.post('/updatecontent', { "document": $scope.detailviewId,"userid": $scope.user.id, "content":$scope.detailfile.content }).then(function (response) {
+        $http.post('/updatecontent', { "document": $scope.detailviewId, "userid": $scope.user.id, "content": $scope.detailfile.content }).then(function (response) {
             //console.log(response);
             detailviewchange();
         });
-        
+
     };
 
     $scope.filterchange = function (value) {
@@ -475,6 +478,18 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         });
     }
 
+    $scope.detailurlimgint = 0;
+    $scope.detailimgchange = function (changint) {        
+        if (changint === "+1" && $scope.detailurlimgint < ($scope.detailurlarray.length - 1)) {
+            $scope.detailurlimgint += 1;
+        }
+        else if (changint === "-1" && $scope.detailurlimgint > 0) {
+            $scope.detailurlimgint -= 1;
+        }
+        var currenturlvar = $scope.detailurlarray[$scope.detailurlimgint];        
+        $scope.detailfile.url = "/download?userid=" + $scope.user.id + "&documentid="+ currenturlvar.document  +"&fileid="+ currenturlvar.id ;
+    }
+
     $scope.makeTag = function () {
         var tagCheck = CheckTag($scope.customtagname);
         if (tagCheck !== undefined) {
@@ -498,8 +513,8 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
     init();
 });
 
-app.filter('reformatName',function(){
-    return function(text){        
-        return text.replace(/_|-/g,' ');
+app.filter('reformatName', function () {
+    return function (text) {
+        return text.replace(/_|-/g, ' ');
     }
 })
