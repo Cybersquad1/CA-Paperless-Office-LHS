@@ -255,11 +255,10 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         });
     }
 
-    function LoadSuggestions(currentdetailfile) {
-        //console.log(tags);
+    function LoadSuggestions(currentdetailfile) {        
         $scope.userfiles = [];
         var tags = currentdetailfile.tags;
-        console.log(tags);
+        //console.log(tags);
 
         for (let i = 0; i < tags.length; i++) {
             var tagfilter = {};
@@ -352,14 +351,8 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
             }
             $scope.detailurlarray = new Array();
             for (var i = 0; i < $scope.downloadfiles.length; i++) {
-                if ($scope.downloadfiles[i].name != "thumbnail.jpg") $scope.detailurlarray.push($scope.downloadfiles[i]);
+                if ($scope.downloadfiles[i].type != 3) $scope.detailurlarray.push($scope.downloadfiles[i]);
             }
-            console.log("$scope.downloadfiles");
-            console.log($scope.downloadfiles);
-            console.log("$scope.detailfile");
-            console.log($scope.detailfile);
-            console.log("$scope.detailurlarray");
-            console.log($scope.detailurlarray);
 
             //else {
             //console.log($scope.detailfile);
