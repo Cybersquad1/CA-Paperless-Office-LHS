@@ -4,10 +4,6 @@ var express = require('express');
 var bodyparser = require('body-parser');
 var app = express();
 
-var api = require('project-oxford-ocr-api');
-var request = require('request');
-var apikey = require('./ApiKey.json');
-
 var multiparty = require("multiparty");
 
 var UH = require('./UserHandler.js');
@@ -70,8 +66,6 @@ UserHandler.Init(app, function (err) {
     }
 
     app.use(bodyparser.json());
-
-    api.API_KEY = apikey.api_key_cv;
 
     app.get("/getuser", function (req, res) {
         UserHandler.GetUserFromSession(req.session, function (match, user) {

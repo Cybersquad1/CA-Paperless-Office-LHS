@@ -25,7 +25,6 @@
     "helmet": "^3.3.0",
     "mssql": "^3.3.0",
     "multiparty": "^4.1.2",
-    "project-oxford-ocr-api": "^1.1.0",
     "request": "^2.79.0"
   }
 }
