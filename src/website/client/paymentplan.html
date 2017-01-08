@@ -62,6 +62,92 @@
             </div>
         </nav>
 
+		<!-- Login modal -->
+        <div class="modal fade" id="loginModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Login / Registration</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- Login/Register navigation tabs -->
+                            <ul class="nav nav-tabs">
+                                <li class="active"><a href="#Login-form" data-toggle="tab">Login</a></li>
+                                <li><a href="#Register-form" data-toggle="tab">Registration</a></li>
+                            </ul>
+                            <!-- Login/Register forms -->
+                            <div class="tab-content">
+                                <!-- Login form -->
+                                <div class="tab-pane active" id="Login-form">
+                                    <form role="form" class="form-horizontal">
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label">Username or Email</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" ng-model="loginUsername" placeholder="Username or Email">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label">Password</label>
+                                            <div class="col-sm-9">
+                                                <input type="password" class="form-control" ng-model="loginPassword" placeholder="Password">
+                                            </div>
+                                        </div>
+                                        <div id="loginwarnings"></div>
+                                        <div class="row">
+                                            <div class="col-sm-5"></div>
+                                            <div class="col-sm-7">
+                                                <button type="button" class="btn btn-primary" ng-click="login()">Submit</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <!-- Register form -->
+                                <div class="tab-pane" id="Register-form">
+                                    <form role="form" class="form-horizontal">
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label">Username</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" ng-model="registerUsername" placeholder="Username">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label">Email</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" ng-model="registerEmail" placeholder="Email">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label">Password</label>
+                                            <div class="col-sm-9">
+                                                <input type="password" class="form-control" ng-model="registerPassword" placeholder="Password">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-3 control-label">Confirm Password</label>
+                                            <div class="col-sm-9">
+                                                <input type="password" class="form-control" ng-model="registercPassword" placeholder="Confirm Password">
+                                            </div>
+                                        </div>
+                                        <div id="registerwarnings"></div>
+                                        <div class="row">
+                                            <div class="col-sm-5"></div>
+                                            <div class="col-sm-7">
+                                                <button type="button" class="btn btn-primary" ng-click="register()">Register</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- modal-content -->
+            </div>
+            <!-- modal-dialog -->
+        </div>
+
 		<div class="container">
 			<div class="row row-centered">
 				<div class="col-sm-6 col-md-3 col-centered">
