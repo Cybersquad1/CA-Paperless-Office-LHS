@@ -32,18 +32,6 @@ UserHandler.Init(app, function (err) {
         }
     }
 
-    function PublishDir(dir) {
-        if (fs.statSync(__dirname + dir).isDirectory()) {
-            app.get(dir + "/*", function (req, res) {
-                if (fs.existsSync(__dirname + req.path)) {
-                    res.sendFile(__dirname + req.path);
-                }
-            });
-            return;
-        }
-        Log("ERROR: FAILED!");
-    }
-
     //https
 
     if (!debug) {
@@ -131,25 +119,6 @@ UserHandler.Init(app, function (err) {
             }
             res.json(response);
         });
-    });
-
-    app.get('/', function (req, res) {
-        res.sendFile(__dirname + "/" + "index.html");
-    });
-    app.get('/main.html', function (req, res) {
-        res.sendFile(__dirname + "/" + "main.html");
-    });
-    app.get('/index.html', function (req, res) {
-        res.sendFile(__dirname + "/" + "index.html");
-    });
-    app.get('/FileOverview.html', function (req, res) {
-        res.sendFile(__dirname + "/" + "FileOverview.html");
-    });
-    app.get('/paymentplan.html', function (req, res) {
-        res.sendFile(__dirname + "/" + "paymentplan.html");
-    });
-    app.get('/detailview.html', function (req, res) {
-        res.sendFile(__dirname + "/" + "detailview.html");
     });
 
     app.post("/upload", function (req, res) {
@@ -308,12 +277,10 @@ UserHandler.Init(app, function (err) {
         });
     });
 
-    PublishDir("/js");
-    PublishDir("/css");
-    PublishDir("/fonts");
-    PublishDir("/images");
+    app.use(express.static("client"));
+
     if (debug) {
-        PublishDir("/Debug");
+        app.use(express.static("Debug"));
     }
 
     var port = process.env.port || 80;
