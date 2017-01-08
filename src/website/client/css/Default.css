@@ -19,3 +19,8 @@
     margin-top: 10px;
 }
 
+@media (max-width: 920px) {
+    .modal-dialog {
+        width: 100%;
+    }
+}
