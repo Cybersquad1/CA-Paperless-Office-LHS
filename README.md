@@ -4,6 +4,7 @@ A paperless office solution for cloud applications
 ## Required ##
 - Create a webserver or create a folder locally.
 - Clone or copy the site files.
+- Go into the folder and install the node packages (run "npm install")
 - Make an sql database on azure or somewhere else.
 - Get Api keys for the "Microsoft Conmputer Vision API" (https://www.microsoft.com/cognitive-services/en-us/computer-vision-api)
 - Get Api keys for the "Text Analytics API" (https://www.microsoft.com/cognitive-services/en-us/text-analytics-api)
