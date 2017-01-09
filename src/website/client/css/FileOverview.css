@@ -71,3 +71,15 @@ body {
 .row-centered {
     text-align:center;
 }
+
+@media(max-width: 992px){
+    body {
+        padding-top: 120px;
+    }
+}
+
+@media(max-width:767px){
+    body {
+        padding-top: 65px;
+    }
+}
