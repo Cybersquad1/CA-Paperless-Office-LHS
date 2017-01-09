@@ -2,21 +2,26 @@
  * Created by levi_ on 7/10/2016.
  */
 
+//modules
 var EE = require('./ErrorEvent.js');
 var DB = require('./DBTools.js');
 var Eh = require("./ErrorHandler.js");
+
+//3rd party modules
 var sql = require('mssql');
-var dbconfig = require('./DBCredentials.json');
-var sessionsecret = require('./SessionSecret.json');
 var Exsession = require('express-session');
 var MSSQLStore = require('connect-mssql')(Exsession);
 var azure = require('azure-storage');
-var azureconfig = require('./azure.json');
 var blobSvc = azure.createBlobService(azureconfig.connectionstring);
 var crypto = require('crypto');
 var request = require('request');
-var apikey = require('./ApiKey.json');
 var fs = require('fs');
+
+//config files
+var apikey = require('./config/ApiKey.json');
+var azureconfig = require('./config/azure.json');
+var dbconfig = require('./config/DBCredentials.json');
+var sessionsecret = require('./config/SessionSecret.json');
 
 /**
  * @constructor

@@ -10,3 +10,7 @@ src/website/.eslintrc.json
 src/website/SessionSecret.json
 src/website/azure.json
 src/website/ApiKey.json
+src/website/config/ApiKey.json
+src/website/config/DBCredentials.json
+src/website/config/SessionSecret.json
+src/website/config/azure.json
