@@ -1,7 +1,7 @@
 # Installation / User Guide - Paperless Office#
 A paperless office solution for cloud applications
 
-## # Required # ##
+## Required ##
 - Create a webserver or create a folder locally.
 - Clone or copy the site files.
 - Make an sql database on azure or somewhere else.
