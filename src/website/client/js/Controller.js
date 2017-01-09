@@ -360,6 +360,16 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
         });
     }
 
+    $scope.checkIfTagIsActive = function(currenttag){
+        var contains = false;
+        for(var i = 0; i < $scope.detailfile.tags.length ; i++){
+            if(currenttag.tag === $scope.detailfile.tags[i].tag){
+                contains = true;
+            }
+        }
+        return contains;
+    }
+
     //todo API call to get userfiles for FileOverview
     $scope.userfiles = [];
     $scope.filtershow = true;
