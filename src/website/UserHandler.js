@@ -7,6 +7,12 @@ var EE = require('./ErrorEvent.js');
 var DB = require('./DBTools.js');
 var Eh = require("./ErrorHandler.js");
 
+//config files
+var apikey = require('./config/ApiKey.json');
+var azureconfig = require('./config/azure.json');
+var dbconfig = require('./config/DBCredentials.json');
+var sessionsecret = require('./config/SessionSecret.json');
+
 //3rd party modules
 var sql = require('mssql');
 var Exsession = require('express-session');
@@ -16,12 +22,6 @@ var blobSvc = azure.createBlobService(azureconfig.connectionstring);
 var crypto = require('crypto');
 var request = require('request');
 var fs = require('fs');
-
-//config files
-var apikey = require('./config/ApiKey.json');
-var azureconfig = require('./config/azure.json');
-var dbconfig = require('./config/DBCredentials.json');
-var sessionsecret = require('./config/SessionSecret.json');
 
 /**
  * @constructor
