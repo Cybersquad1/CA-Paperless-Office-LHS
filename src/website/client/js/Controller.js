@@ -402,6 +402,12 @@ app.controller('PaperlessController', function ($scope, $http, Upload, $window, 
 
     };
 
+    $scope.IndexSortnowClick = function(){       
+        if($scope.loggedin){
+            $window.location.href = '/FileOverview.html';
+        }
+    }
+
     $scope.filterchange = function (value) {
         console.log(value);
         if (value) {
